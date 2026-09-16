@@ -13,19 +13,23 @@
         "laravel/framework": "^13.17",
         "laravel/horizon": "^5.49",
         "laravel/passport": "^13.0",
+        "laravel/pint": "*",
         "laravel/tinker": "^3.0"
     },
     "require-dev": {
+        "barryvdh/laravel-ide-helper": "^3.7",
+        "driftingly/rector-laravel": "^2.6",
         "fakerphp/faker": "^1.23",
-        "laravel/boost": "^2.2",
+        "larastan/larastan": "^3.12",
+        "laravel/boost": "^2.9",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
-        "laravel/pint": "^1.27",
         "laravel/telescope": "^5.24",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^5.2",
-        "pestphp/pest-plugin-laravel": "^5.0"
+        "pestphp/pest-plugin-laravel": "^5.0",
+        "rector/rector": "^2.6"
     },
     "autoload": {
         "psr-4": {
@@ -40,21 +44,42 @@
         }
     },
     "scripts": {
-        "setup": [
-            "composer install",
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
-            "@php artisan key:generate",
-            "@php artisan migrate --force",
-            "npm install --ignore-scripts",
-            "npm run build"
-        ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "@php artisan dev"
+            "@php artisan serve"
         ],
+        "format": "@php ./vendor/bin/pint --parallel",
+        "refactor": "@php ./vendor/bin/rector",
+        "fix": [
+            "@refactor",
+            "@format"
+        ],
+        "lint": [
+            "@php ./vendor/bin/pint --test --parallel",
+            "@php ./vendor/bin/rector --dry-run"
+        ],
+        "types": "@php ./vendor/bin/phpstan analyse --memory-limit=-1",
         "test": [
-            "@php artisan config:clear --ansi @no_additional_args",
-            "@php artisan test"
+            "@php artisan config:clear --ansi",
+            "@php artisan test --parallel --recreate-databases"
+        ],
+        "test:unit": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Unit"
+        ],
+        "test:feature": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Feature"
+        ],
+        "test:coverage": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --coverage"
+        ],
+        "ci": [
+            "Composer\\Config::disableProcessTimeout",
+            "@lint",
+            "@types",
+            "@test"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
@@ -62,6 +87,7 @@
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+            "@php artisan ide-helper:generate",
             "@php artisan boost:update --ansi"
         ],
         "post-root-package-install": [
