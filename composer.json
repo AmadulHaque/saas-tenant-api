@@ -13,6 +13,7 @@
         "dedoc/scramble": "^0.13.43",
         "laravel/framework": "^13.17",
         "laravel/horizon": "^5.49",
+        "laravel/octane": "^2.19",
         "laravel/passport": "^13.0",
         "laravel/pint": "*",
         "laravel/tinker": "^3.0"

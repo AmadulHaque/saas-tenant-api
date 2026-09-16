@@ -15,6 +15,7 @@
         "laravel-best-practices",
         "testing-best-practices",
         "configuring-horizon",
+        "octane-development",
         "passport-development",
         "telescope-debugging",
         "tailwindcss-development"
