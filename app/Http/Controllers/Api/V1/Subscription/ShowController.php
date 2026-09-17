@@ -7,9 +7,11 @@ use App\Http\Controllers\Concerns\ResolvesTenantCompany;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SubscriptionResource;
 use App\Services\SubscriptionService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+#[Group('Subscription', description: 'Tenant subscription lifecycle (owner only).')]
 class ShowController extends Controller
 {
     use AuthorizesSubscription;

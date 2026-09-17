@@ -25,7 +25,8 @@ final class LogApiRequests
         if (config()->boolean('logging.log_api_requests', false)) {
             Log::info('api.request', [
                 'method' => $request->method(),
-                'url' => $request->fullUrl(),
+                // Path only: query strings can carry searchable PII (emails).
+                'path' => $request->path(),
                 'ip' => $request->ip(),
                 'user_id' => $request->user()?->getAuthIdentifier(),
                 'status' => $response->getStatusCode(),

@@ -7,9 +7,11 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\UserResource;
 use App\Services\TenantRegistrationService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
+#[Group('Authentication', description: 'Register, login, and logout with Passport personal access tokens.')]
 class RegisterController extends Controller
 {
     /**

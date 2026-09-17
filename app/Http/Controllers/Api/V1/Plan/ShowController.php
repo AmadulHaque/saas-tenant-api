@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\V1\Plan;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PlanResource;
 use App\Models\SubscriptionPlan;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
+#[Group('Plans', description: 'Public subscription plan catalog.')]
 class ShowController extends Controller
 {
     /**

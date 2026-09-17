@@ -9,8 +9,10 @@ use App\Http\Requests\StoreSubscriptionRequest;
 use App\Http\Resources\SubscriptionResource;
 use App\Models\SubscriptionPlan;
 use App\Services\SubscriptionService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
+#[Group('Subscription', description: 'Tenant subscription lifecycle (owner only).')]
 class StoreController extends Controller
 {
     use AuthorizesSubscription;

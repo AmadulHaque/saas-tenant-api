@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api\V1\Company;
 use App\Http\Controllers\Concerns\ResolvesTenantCompany;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CompanyResource;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+#[Group('Company', description: 'Tenant company profile (owner-managed updates).')]
 class ShowController extends Controller
 {
     use ResolvesTenantCompany;

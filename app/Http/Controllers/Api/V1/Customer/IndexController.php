@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ListCustomersRequest;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Customers', description: 'Tenant customer management.')]
 class IndexController extends Controller
 {
     /**
@@ -20,10 +22,10 @@ class IndexController extends Controller
         $customers = Customer::query()
             ->select(['id', 'company_id', 'name', 'email', 'phone', 'status', 'created_at'])
             ->forCompany($request->user('api')->company_id)
-            ->when($request->filled('search'), fn ($query) => $query->where(function ($query) use ($request): void {
-                $term = '%'.$request->string('search')->toString().'%';
-                $query->where('name', 'like', $term)->orWhere('email', 'like', $term);
-            }))
+            ->when($request->filled('search'), fn ($query) => $query->search(
+                $request->string('search')->toString(),
+                ['name', 'email']
+            ))
             ->when($request->filled('status'), fn ($query) => $query->where(
                 'status',
                 $request->string('status')->toString()

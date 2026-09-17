@@ -55,6 +55,27 @@ class Customer extends Model
     }
 
     /**
+     * Case-insensitive search across the given columns.
+     *
+     * PostgreSQL LIKE is case-sensitive, so ilike is used there; SQLite
+     * LIKE is already case-insensitive.
+     *
+     * @param  Builder<self>  $query
+     * @param  list<string>  $columns
+     */
+    public function scopeSearch(Builder $query, string $term, array $columns): void
+    {
+        $operator = $query->getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+        $pattern = '%'.addcslashes($term, '\\%_').'%';
+
+        $query->where(function (Builder $query) use ($columns, $operator, $pattern): void {
+            foreach ($columns as $index => $column) {
+                $query->{$index === 0 ? 'where' : 'orWhere'}($column, $operator, $pattern);
+            }
+        });
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

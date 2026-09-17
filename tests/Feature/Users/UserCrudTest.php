@@ -67,6 +67,12 @@ test('user list supports search and role filters', function (): void {
         ->assertJsonPath('data.0.name', 'Zara Unique');
 
     $this->actingAs($admin, 'api')
+        ->getJson('/api/v1/users?search=zara')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.name', 'Zara Unique');
+
+    $this->actingAs($admin, 'api')
         ->getJson('/api/v1/users?role=member')
         ->assertOk()
         ->assertJsonCount(2, 'data');

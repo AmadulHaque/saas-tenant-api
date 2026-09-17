@@ -7,9 +7,11 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\SubscriptionLimitService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
+#[Group('Users', description: 'Tenant user management (owner/admin).')]
 class StoreController extends Controller
 {
     /**

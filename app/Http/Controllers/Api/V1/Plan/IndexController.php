@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api\V1\Plan;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PlanResource;
 use App\Models\SubscriptionPlan;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Cache;
 
+#[Group('Plans', description: 'Public subscription plan catalog.')]
 class IndexController extends Controller
 {
     /**

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api\V1\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
+#[Group('Customers', description: 'Tenant customer management.')]
 class DestroyController extends Controller
 {
     /**

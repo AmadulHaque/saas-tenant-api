@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api\V1\Me;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+#[Group('Me', description: 'Authenticated user context.')]
 class ShowController extends Controller
 {
     /**

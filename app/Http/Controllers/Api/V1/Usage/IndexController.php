@@ -6,9 +6,11 @@ use App\Http\Controllers\Concerns\ResolvesTenantCompany;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UsageResource;
 use App\Models\UsageRecord;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Usage', description: 'Append-only feature usage ledger (owner/admin).')]
 class IndexController extends Controller
 {
     use ResolvesTenantCompany;

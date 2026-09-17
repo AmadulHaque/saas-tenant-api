@@ -8,9 +8,11 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
 use App\Services\SubscriptionLimitService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
+#[Group('Customers', description: 'Tenant customer management.')]
 class StoreController extends Controller
 {
     /**

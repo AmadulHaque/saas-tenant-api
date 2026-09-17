@@ -84,9 +84,9 @@ test('api request logging can be enabled', function (): void {
     Log::spy();
     config()->set('logging.log_api_requests', true);
 
-    $this->getJson('/api/v1/me', authed($tenant))->assertOk();
+    $this->getJson('/api/v1/me?email=secret@acme.test', authed($tenant))->assertOk();
 
-    Log::assertLogged('api.request');
+    Log::assertLogged('api.request', fn (array $message): bool => ! str_contains((string) $message['path'], 'secret@acme.test'));
 });
 
 test('api request logging is disabled by default', function (): void {

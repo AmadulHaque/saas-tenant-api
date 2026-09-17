@@ -40,6 +40,12 @@ test('customers support search, status filter, and pagination', function (): voi
         ->assertJsonPath('data.0.name', 'Ada Lovelace');
 
     $this->actingAs($admin, 'api')
+        ->getJson('/api/v1/customers?search=LOVELACE')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.name', 'Ada Lovelace');
+
+    $this->actingAs($admin, 'api')
         ->getJson('/api/v1/customers?status=inactive')
         ->assertOk()
         ->assertJsonCount(1, 'data')

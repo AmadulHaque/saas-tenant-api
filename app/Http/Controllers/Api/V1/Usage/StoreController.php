@@ -8,9 +8,11 @@ use App\Http\Requests\StoreUsageRequest;
 use App\Http\Resources\UsageResource;
 use App\Models\UsageRecord;
 use App\Services\UsageService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
+#[Group('Usage', description: 'Append-only feature usage ledger (owner/admin).')]
 class StoreController extends Controller
 {
     use ResolvesTenantCompany;

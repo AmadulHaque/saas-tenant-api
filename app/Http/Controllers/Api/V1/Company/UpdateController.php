@@ -6,8 +6,10 @@ use App\Http\Controllers\Concerns\ResolvesTenantCompany;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Resources\CompanyResource;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
+#[Group('Company', description: 'Tenant company profile (owner-managed updates).')]
 class UpdateController extends Controller
 {
     use ResolvesTenantCompany;
