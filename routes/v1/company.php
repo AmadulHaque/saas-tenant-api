@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\V1\CompanyController;
+use App\Http\Controllers\Api\V1\Company\ShowController;
+use App\Http\Controllers\Api\V1\Company\UpdateController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/company', [CompanyController::class, 'show'])->name('company.show');
-Route::patch('/company', [CompanyController::class, 'update'])->name('company.update');
+Route::get('/company', ShowController::class)->name('company.show');
+Route::patch('/company', UpdateController::class)->name('company.update');

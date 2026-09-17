@@ -25,7 +25,7 @@ HTTP (Octane/FrankenPHP)
 Declarative validation, one class per endpoint flavor. List requests own pagination/filter rules (`per_page` max 100, `search`, `role`, `status`). Mass-assignment is impossible: models declare `$fillable` explicitly, and role/company fields are set via `forceFill` in controllers after authorization.
 
 ### Controllers (`App\Http\Controllers\Api\V1`)
-Thin: authorize (`$this->authorize()`), delegate to a service, transform via an API Resource. Conventions: JSON responses shaped `{ "<resource>": … }`, `201` on create, `404` scoped-not-found, `403` role failures, `422` validation/limit errors.
+Single Responsibility Principle applied at the route level: **one invokable controller class per endpoint**, grouped by resource (`Auth\RegisterController`, `User\IndexController`, `User\StoreController`, …). Each class does one thing: authorize (`$this->authorize()`), delegate to a service, transform via an API Resource. Shared concerns live in `App\Http\Controllers\Concerns` (`ResolvesTenantCompany`, `AuthorizesSubscription`); tenant-scoped lookups share the `forCompany` model scope. Conventions: JSON responses shaped `{ "<resource>": … }`, `201` on create, `404` scoped-not-found, `403` role failures, `422` validation/limit errors. Every route is a standalone registration in `routes/v1/*.php` pointing at its own class — no `[Controller::class, 'method']` arrays.
 
 ### Services (`App\Services`)
 | Service | Responsibility |

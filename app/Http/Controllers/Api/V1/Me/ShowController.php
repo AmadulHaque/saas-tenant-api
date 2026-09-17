@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Http\Controllers\Api\V1\Me;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class MeController extends Controller
+class ShowController extends Controller
 {
     /**
      * Return the authenticated user with their company context.
      */
-    public function show(Request $request): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
         $user = $request->user('api');
         $user->loadMissing('company');
