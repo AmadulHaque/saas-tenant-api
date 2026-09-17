@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,11 +27,24 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureTrustedProxies();
         $this->configureRateLimiting();
+        $this->configurePassport();
     }
+
+    private function configurePassport(): void
+    {
+        Passport::personalAccessTokensExpireIn(now()->addDays(30));
+    }
+
     private function configureRateLimiting(): void
     {
-        RateLimiter::for('api', fn(Request $request): Limit => Limit::perMinute(60)
+        RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(60)
             ->by($this->resolveLimiterKey($request)));
+
+        RateLimiter::for('authenticated', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by($this->resolveLimiterKey($request)));
+
+        RateLimiter::for('auth', fn (Request $request): Limit => Limit::perMinute(5)
+            ->by(sprintf('auth|%s|%s', $request->ip(), (string) $request->input('email'))));
     }
 
     private function configureTrustedProxies(): void

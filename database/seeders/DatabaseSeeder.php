@@ -8,6 +8,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Laravel\Passport\ClientRepository;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,6 +17,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Personal access client used by login/registration token issuance.
+        app(ClientRepository::class)->createPersonalAccessGrantClient('Personal Access Client');
         $plans = collect([
             [
                 'name' => 'Free',
