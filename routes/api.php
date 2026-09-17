@@ -12,5 +12,6 @@ Route::prefix('v1')->group(function (): void {
         require __DIR__.'/v1/company.php';
         require __DIR__.'/v1/users.php';
         require __DIR__.'/v1/customers.php';
+        require __DIR__.'/v1/subscription.php';
     });
 });

@@ -9,6 +9,7 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
+use App\Services\SubscriptionLimitService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -45,15 +46,17 @@ class CustomerController extends Controller
     /**
      * Create a customer in the authenticated user's company.
      */
-    public function store(StoreCustomerRequest $request): JsonResponse
+    public function store(StoreCustomerRequest $request, SubscriptionLimitService $limits): JsonResponse
     {
         $this->authorize('create', Customer::class);
 
-        $customer = Customer::create([
+        $actor = $request->user('api');
+
+        $customer = $limits->enforce($actor->company, 'max_customers', fn (): Customer => Customer::create([
             ...$request->validated(),
-            'company_id' => $request->user('api')->company_id,
+            'company_id' => $actor->company_id,
             'status' => $request->string('status')->toString() ?: CustomerStatus::Active->value,
-        ]);
+        ]));
 
         return response()->json([
             'customer' => new CustomerResource($customer),

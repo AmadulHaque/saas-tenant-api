@@ -51,11 +51,21 @@ class SubscriptionPlan extends Model
     }
 
     /**
+     * Read a configured feature limit; null means unlimited.
+     */
+    public function limit(string $feature): ?int
+    {
+        $limit = $this->limits[$feature] ?? null;
+
+        return is_int($limit) ? $limit : null;
+    }
+
+    /**
      * Maximum allowed users; null means unlimited.
      */
     public function maxUsers(): ?int
     {
-        return $this->limitFor(self::FEATURE_MAX_USERS);
+        return $this->limit(self::FEATURE_MAX_USERS);
     }
 
     /**
@@ -63,17 +73,7 @@ class SubscriptionPlan extends Model
      */
     public function maxCustomers(): ?int
     {
-        return $this->limitFor(self::FEATURE_MAX_CUSTOMERS);
-    }
-
-    /**
-     * Read a configured feature limit from the limits payload.
-     */
-    private function limitFor(string $feature): ?int
-    {
-        $limit = $this->limits[$feature] ?? null;
-
-        return is_int($limit) ? $limit : null;
+        return $this->limit(self::FEATURE_MAX_CUSTOMERS);
     }
 
     /**

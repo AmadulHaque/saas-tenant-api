@@ -8,6 +8,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\SubscriptionLimitService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -41,20 +42,26 @@ class UserController extends Controller
     /**
      * Create a user in the authenticated user's company.
      */
-    public function store(StoreUserRequest $request): JsonResponse
+    public function store(StoreUserRequest $request, SubscriptionLimitService $limits): JsonResponse
     {
         $this->authorize('create', User::class);
 
-        $user = new User;
-        $user->forceFill([
-            'name' => $request->string('name')->toString(),
-            'email' => $request->string('email')->toString(),
-            'password' => $request->string('password')->toString(),
-            'company_id' => $request->user('api')->company_id,
-            'role' => $request->string('role')->toString(),
-            'email_verified_at' => now(),
-        ]);
-        $user->save();
+        $actor = $request->user('api');
+
+        $user = $limits->enforce($actor->company, 'max_users', function () use ($request, $actor): User {
+            $user = new User;
+            $user->forceFill([
+                'name' => $request->string('name')->toString(),
+                'email' => $request->string('email')->toString(),
+                'password' => $request->string('password')->toString(),
+                'company_id' => $actor->company_id,
+                'role' => $request->string('role')->toString(),
+                'email_verified_at' => now(),
+            ]);
+            $user->save();
+
+            return $user;
+        });
 
         return response()->json([
             'user' => new UserResource($user),
