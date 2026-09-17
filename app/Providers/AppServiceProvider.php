@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Customer;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
+use App\Models\User;
+use App\Observers\FlushPlansCache;
+use App\Observers\FlushTenantDashboardCache;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
@@ -28,6 +34,18 @@ class AppServiceProvider extends ServiceProvider
         $this->configureTrustedProxies();
         $this->configureRateLimiting();
         $this->configurePassport();
+        $this->configureObservers();
+    }
+
+    /**
+     * Register cache-flushing observers for cached resources.
+     */
+    private function configureObservers(): void
+    {
+        User::observe(FlushTenantDashboardCache::class);
+        Customer::observe(FlushTenantDashboardCache::class);
+        Subscription::observe(FlushTenantDashboardCache::class);
+        SubscriptionPlan::observe(FlushPlansCache::class);
     }
 
     private function configurePassport(): void
