@@ -20,7 +20,7 @@ function subscriber(): array
     return ['company' => $company, 'owner' => $company->owner, 'admin' => $admin, 'member' => $member];
 }
 
-test('active plans are listed and visible to any authenticated user', function () {
+test('active plans are listed and visible to any authenticated user', function (): void {
     $free = subPlan(['name' => 'Alpha Free', 'price_cents' => 0]);
     $pro = subPlan(['name' => 'Zeta Pro', 'price_cents' => 9900]);
     subPlan(['name' => 'Hidden Plan', 'is_active' => false]);
@@ -37,7 +37,7 @@ test('active plans are listed and visible to any authenticated user', function (
         ->not->toBeNull();
 });
 
-test('plan detail hides inactive plans', function () {
+test('plan detail hides inactive plans', function (): void {
     $active = subPlan();
     $inactive = subPlan(['is_active' => false]);
 
@@ -53,7 +53,7 @@ test('plan detail hides inactive plans', function () {
         ->assertNotFound();
 });
 
-test('only the owner can view the current subscription', function () {
+test('only the owner can view the current subscription', function (): void {
     ['company' => $company, 'owner' => $owner, 'admin' => $admin, 'member' => $member] = subscriber();
     $plan = subPlan();
 
@@ -78,7 +78,7 @@ test('only the owner can view the current subscription', function () {
     }
 });
 
-test('companies without a subscription get a null payload', function () {
+test('companies without a subscription get a null payload', function (): void {
     $company = Company::factory()->withOwner()->create();
 
     $this->actingAs($company->owner, 'api')
@@ -87,7 +87,7 @@ test('companies without a subscription get a null payload', function () {
         ->assertJsonPath('subscription', null);
 });
 
-test('owner can subscribe and changing plans cancels the old subscription', function () {
+test('owner can subscribe and changing plans cancels the old subscription', function (): void {
     ['company' => $company, 'owner' => $owner] = subscriber();
     $starter = subPlan(['name' => 'Starter A', 'billing_interval' => 'monthly']);
     $pro = subPlan(['name' => 'Pro A', 'price_cents' => 9900]);
@@ -108,7 +108,7 @@ test('owner can subscribe and changing plans cancels the old subscription', func
         ->and($company->subscriptions()->where('plan_id', $starter->id)->first()->status->value)->toBe('cancelled');
 });
 
-test('subscribing to the same active plan is rejected', function () {
+test('subscribing to the same active plan is rejected', function (): void {
     ['company' => $company, 'owner' => $owner] = subscriber();
     $plan = subPlan();
 
@@ -122,7 +122,7 @@ test('subscribing to the same active plan is rejected', function () {
         ->assertJsonValidationErrors(['plan_id']);
 });
 
-test('non-owners cannot manage subscriptions', function () {
+test('non-owners cannot manage subscriptions', function (): void {
     ['company' => $company, 'admin' => $admin, 'member' => $member] = subscriber();
     $plan = subPlan();
 
@@ -139,7 +139,7 @@ test('non-owners cannot manage subscriptions', function () {
     expect($company->activeSubscription)->toBeNull();
 });
 
-test('inactive or unknown plans are rejected', function () {
+test('inactive or unknown plans are rejected', function (): void {
     ['company' => $company, 'owner' => $owner] = subscriber();
     $inactive = subPlan(['is_active' => false]);
 
@@ -154,7 +154,7 @@ test('inactive or unknown plans are rejected', function () {
         ->assertJsonValidationErrors(['plan_id']);
 });
 
-test('owner can cancel and later resubscribe', function () {
+test('owner can cancel and later resubscribe', function (): void {
     ['company' => $company, 'owner' => $owner] = subscriber();
     $plan = subPlan();
 
@@ -175,7 +175,7 @@ test('owner can cancel and later resubscribe', function () {
     expect($company->subscriptions()->where('status', 'cancelled')->count())->toBe(1);
 });
 
-test('cancelling without an active subscription returns 404', function () {
+test('cancelling without an active subscription returns 404', function (): void {
     ['company' => $company, 'owner' => $owner] = subscriber();
 
     $this->actingAs($owner, 'api')
@@ -183,7 +183,7 @@ test('cancelling without an active subscription returns 404', function () {
         ->assertNotFound();
 });
 
-test('past-due subscriptions are lazily expired on read', function () {
+test('past-due subscriptions are lazily expired on read', function (): void {
     ['company' => $company, 'owner' => $owner] = subscriber();
     $plan = subPlan();
 
@@ -203,7 +203,7 @@ test('past-due subscriptions are lazily expired on read', function () {
     expect($subscription->fresh()->status->value)->toBe('expired');
 });
 
-test('database still blocks a second active subscription', function () {
+test('database still blocks a second active subscription', function (): void {
     ['company' => $company] = subscriber();
     $plan = subPlan();
 

@@ -2,7 +2,7 @@
 
 use App\Models\Company;
 
-test('authenticated endpoints are rate limited after 60 requests per minute', function () {
+test('authenticated endpoints are rate limited after 60 requests per minute', function (): void {
     $company = Company::factory()->withOwner()->create();
     $owner = $company->owner;
 

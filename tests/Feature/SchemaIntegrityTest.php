@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 use function Pest\Laravel\assertDatabaseHas;
 
-test('company cannot have two active subscriptions', function () {
+test('company cannot have two active subscriptions', function (): void {
     $company = Company::factory()->create();
     $plan = SubscriptionPlan::factory()->create();
 
@@ -25,7 +25,7 @@ test('company cannot have two active subscriptions', function () {
     ]);
 })->throws(QueryException::class);
 
-test('company can keep historical subscriptions alongside the active one', function () {
+test('company can keep historical subscriptions alongside the active one', function (): void {
     $company = Company::factory()->create();
     $plan = SubscriptionPlan::factory()->create();
 
@@ -48,7 +48,7 @@ test('company can keep historical subscriptions alongside the active one', funct
         ->and($company->activeSubscription()->count())->toBe(1);
 });
 
-test('customer email is unique within a company but reusable across companies', function () {
+test('customer email is unique within a company but reusable across companies', function (): void {
     $companyA = Company::factory()->create();
     $companyB = Company::factory()->create();
 
@@ -68,7 +68,7 @@ test('customer email is unique within a company but reusable across companies', 
     ]))->toThrow(QueryException::class);
 });
 
-test('soft-deleted customer frees the email for reuse', function () {
+test('soft-deleted customer frees the email for reuse', function (): void {
     $company = Company::factory()->create();
 
     $customer = Customer::factory()->create([
@@ -86,7 +86,7 @@ test('soft-deleted customer frees the email for reuse', function () {
     expect($replacement->exists)->toBeTrue();
 });
 
-test('plan referenced by a subscription cannot be deleted', function () {
+test('plan referenced by a subscription cannot be deleted', function (): void {
     $company = Company::factory()->create();
     $plan = SubscriptionPlan::factory()->create();
 
@@ -98,7 +98,7 @@ test('plan referenced by a subscription cannot be deleted', function () {
     expect(fn () => $plan->delete())->toThrow(QueryException::class);
 });
 
-test('subscription period end must be after start', function () {
+test('subscription period end must be after start', function (): void {
     if (DB::connection()->getDriverName() !== 'pgsql') {
         $this->markTestSkipped('Period check constraint is only enforced on PostgreSQL.');
     }

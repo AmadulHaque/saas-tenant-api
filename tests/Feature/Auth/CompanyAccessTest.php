@@ -11,7 +11,7 @@ function companyUserWithRole(Company $company, string $role): User
     ]);
 }
 
-test('any company member can view the company', function (string $role) {
+test('any company member can view the company', function (string $role): void {
     $company = Company::factory()->withOwner()->create();
     $user = companyUserWithRole($company, $role);
 
@@ -23,11 +23,11 @@ test('any company member can view the company', function (string $role) {
         ->assertJsonPath('company.owner.email', $company->owner->email);
 })->with(['owner', 'admin', 'member']);
 
-test('company view requires authentication', function () {
+test('company view requires authentication', function (): void {
     $this->getJson('/api/v1/company')->assertUnauthorized();
 });
 
-test('owner can update the company name', function () {
+test('owner can update the company name', function (): void {
     $company = Company::factory()->withOwner()->create();
 
     $this->actingAs($company->owner, 'api')
@@ -39,7 +39,7 @@ test('owner can update the company name', function () {
         ->and($company->fresh()->slug)->toBe($company->slug);
 });
 
-test('non-owners cannot update the company', function (string $role) {
+test('non-owners cannot update the company', function (string $role): void {
     $company = Company::factory()->withOwner()->create();
     $user = companyUserWithRole($company, $role);
 
@@ -50,7 +50,7 @@ test('non-owners cannot update the company', function (string $role) {
     expect($company->fresh()->name)->toBe($company->name);
 })->with(['admin', 'member']);
 
-test('company update validates the name field', function () {
+test('company update validates the name field', function (): void {
     $company = Company::factory()->withOwner()->create();
 
     $this->actingAs($company->owner, 'api')
@@ -59,7 +59,7 @@ test('company update validates the name field', function () {
         ->assertJsonValidationErrors(['name']);
 });
 
-test('cross-tenant company access is forbidden', function () {
+test('cross-tenant company access is forbidden', function (): void {
     $company = Company::factory()->withOwner()->create();
     $other = Company::factory()->withOwner()->create();
 
@@ -70,7 +70,7 @@ test('cross-tenant company access is forbidden', function () {
         ->assertJsonMissing(['id' => $other->id]);
 });
 
-test('authenticated user without company is forbidden', function () {
+test('authenticated user without company is forbidden', function (): void {
     $user = User::factory()->create();
 
     $this->actingAs($user, 'api')

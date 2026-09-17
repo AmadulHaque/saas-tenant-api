@@ -4,7 +4,7 @@ use App\Models\Company;
 use App\Models\User;
 use Laravel\Passport\Passport;
 
-test('me returns the authenticated user with company context', function () {
+test('me returns the authenticated user with company context', function (): void {
     $company = Company::factory()->create();
     $user = User::factory()->create(['company_id' => $company->id, 'role' => 'member']);
 
@@ -18,6 +18,6 @@ test('me returns the authenticated user with company context', function () {
         ->assertJsonPath('user.company.slug', $company->slug);
 });
 
-test('me requires authentication', function () {
+test('me requires authentication', function (): void {
     $this->getJson('/api/v1/me')->assertUnauthorized();
 });

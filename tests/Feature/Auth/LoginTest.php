@@ -14,7 +14,7 @@ function loginUserViaApi(array $attributes = []): User
     return User::factory()->create([...$attributes, 'company_id' => $company->id, 'role' => 'owner']);
 }
 
-test('login issues a usable token for valid credentials', function () {
+test('login issues a usable token for valid credentials', function (): void {
     $company = Company::factory()->create();
     $user = User::factory()->create(['email' => 'login@example.test', 'company_id' => $company->id, 'role' => 'owner']);
 
@@ -31,7 +31,7 @@ test('login issues a usable token for valid credentials', function () {
         ->assertOk();
 });
 
-test('login rejects a wrong password', function () {
+test('login rejects a wrong password', function (): void {
     loginUserViaApi(['email' => 'wrongpw@example.test']);
 
     $this->postJson('/api/v1/auth/login', [
@@ -41,14 +41,14 @@ test('login rejects a wrong password', function () {
         ->assertJsonValidationErrors(['email']);
 });
 
-test('login rejects an unknown email', function () {
+test('login rejects an unknown email', function (): void {
     $this->postJson('/api/v1/auth/login', [
         'email' => 'ghost@example.test',
         'password' => 'password',
     ])->assertUnprocessable();
 });
 
-test('soft-deleted users cannot log in', function () {
+test('soft-deleted users cannot log in', function (): void {
     $user = loginUserViaApi(['email' => 'deleted@example.test']);
     $user->delete();
 
@@ -58,7 +58,7 @@ test('soft-deleted users cannot log in', function () {
     ])->assertUnprocessable();
 });
 
-test('login is rate limited to five attempts per minute', function () {
+test('login is rate limited to five attempts per minute', function (): void {
     loginUserViaApi(['email' => 'throttled@example.test']);
 
     foreach (range(1, 5) as $attempt) {
@@ -74,7 +74,7 @@ test('login is rate limited to five attempts per minute', function () {
     ])->assertTooManyRequests();
 });
 
-test('login validates payload shape', function () {
+test('login validates payload shape', function (): void {
     $this->postJson('/api/v1/auth/login', [
         'email' => 'not-an-email',
     ])->assertUnprocessable()

@@ -20,7 +20,7 @@ function policyUser(int $id, ?int $companyId, UserRole $role): User
     ]);
 }
 
-test('company policy grants view to members and update to owner only', function () {
+test('company policy grants view to members and update to owner only', function (): void {
     $company = (new Company)->forceFill(['id' => 1, 'company_id' => 1]);
     $other = (new Company)->forceFill(['id' => 2, 'company_id' => 2]);
 
@@ -42,7 +42,7 @@ test('company policy grants view to members and update to owner only', function 
         ->and($policy->update($outsider, $company))->toBeFalse();
 });
 
-test('user policy allows admins to manage non-owner users only', function () {
+test('user policy allows admins to manage non-owner users only', function (): void {
     $policy = new UserPolicy;
 
     $owner = policyUser(1, 1, UserRole::Owner);
@@ -66,7 +66,7 @@ test('user policy allows admins to manage non-owner users only', function () {
         ->and($policy->delete($member, $member))->toBeFalse();
 });
 
-test('customer policy grants read to all members and writes to managers', function () {
+test('customer policy grants read to all members and writes to managers', function (): void {
     $policy = new CustomerPolicy;
 
     $customer = (new Customer)->forceFill([
@@ -96,7 +96,7 @@ test('customer policy grants read to all members and writes to managers', functi
         ->and($policy->delete($member, $customer))->toBeFalse();
 });
 
-test('subscription policy is restricted to the owner', function () {
+test('subscription policy is restricted to the owner', function (): void {
     $policy = new SubscriptionPolicy;
 
     $subscription = (new Subscription)->forceFill([

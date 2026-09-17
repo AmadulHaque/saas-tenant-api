@@ -11,7 +11,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 
-test('company exposes owner, users, customers, and active subscription', function () {
+test('company exposes owner, users, customers, and active subscription', function (): void {
     $company = Company::factory()->withOwner()->create();
     $plan = SubscriptionPlan::factory()->create();
 
@@ -33,7 +33,7 @@ test('company exposes owner, users, customers, and active subscription', functio
         ->and($admin->company->is($company))->toBeTrue();
 });
 
-test('subscription scopes select active and past-due rows correctly', function () {
+test('subscription scopes select active and past-due rows correctly', function (): void {
     $companyA = Company::factory()->create();
     $companyB = Company::factory()->create();
     $plan = SubscriptionPlan::factory()->create();
@@ -59,7 +59,7 @@ test('subscription scopes select active and past-due rows correctly', function (
         ->and(Subscription::query()->pastDue()->count())->toBe(1);
 });
 
-test('plan limit helpers read the limits payload', function () {
+test('plan limit helpers read the limits payload', function (): void {
     $plan = SubscriptionPlan::factory()->create([
         'limits' => ['max_users' => 5, 'max_customers' => null],
     ]);
@@ -69,18 +69,18 @@ test('plan limit helpers read the limits payload', function () {
         ->and(SubscriptionPlan::factory()->withoutLimits()->make()->maxUsers())->toBeNull();
 });
 
-test('billing interval resolves months', function () {
+test('billing interval resolves months', function (): void {
     expect(BillingInterval::Monthly->months())->toBe(1)
         ->and(BillingInterval::Yearly->months())->toBe(12);
 });
 
-test('role helpers classify management permissions', function () {
+test('role helpers classify management permissions', function (): void {
     expect(UserRole::Owner->canManage())->toBeTrue()
         ->and(UserRole::Admin->canManage())->toBeTrue()
         ->and(UserRole::Member->canManage())->toBeFalse();
 });
 
-test('customer and subscription enums cast from database values', function () {
+test('customer and subscription enums cast from database values', function (): void {
     $company = Company::factory()->create();
     $plan = SubscriptionPlan::factory()->create();
 

@@ -14,7 +14,7 @@ function usageTenant(): array
     return ['company' => $company, 'owner' => $company->owner, 'admin' => $admin, 'member' => $member];
 }
 
-test('owner and admin can record usage with metadata', function () {
+test('owner and admin can record usage with metadata', function (): void {
     ['company' => $company, 'owner' => $owner, 'admin' => $admin] = usageTenant();
 
     foreach ([$owner, $admin] as $user) {
@@ -33,7 +33,7 @@ test('owner and admin can record usage with metadata', function () {
         ->and(app(UsageService::class)->total($company, 'api_calls'))->toBe(50);
 });
 
-test('members cannot read or record usage', function () {
+test('members cannot read or record usage', function (): void {
     ['company' => $company, 'member' => $member] = usageTenant();
     UsageRecord::factory()->create(['company_id' => $company->id]);
 
@@ -48,7 +48,7 @@ test('members cannot read or record usage', function () {
     expect($company->usageRecords()->count())->toBe(1);
 });
 
-test('usage listing is paginated and feature filtered', function () {
+test('usage listing is paginated and feature filtered', function (): void {
     ['company' => $company, 'owner' => $owner] = usageTenant();
     UsageRecord::factory()->count(3)->create(['company_id' => $company->id, 'feature' => 'api_calls']);
     UsageRecord::factory()->create(['company_id' => $company->id, 'feature' => 'exports']);
@@ -66,7 +66,7 @@ test('usage listing is paginated and feature filtered', function () {
         ->assertJsonPath('meta.total', 1);
 });
 
-test('usage data never leaks across tenants', function () {
+test('usage data never leaks across tenants', function (): void {
     ['company' => $companyA, 'owner' => $ownerA] = usageTenant();
     $companyB = Company::factory()->withOwner()->create();
     UsageRecord::factory()->count(2)->create(['company_id' => $companyB->id]);
@@ -79,7 +79,7 @@ test('usage data never leaks across tenants', function () {
     expect(app(UsageService::class)->total($companyA, 'api_calls'))->toBe(0);
 });
 
-test('usage validation rejects bad payloads', function () {
+test('usage validation rejects bad payloads', function (): void {
     ['owner' => $owner] = usageTenant();
 
     $this->actingAs($owner, 'api')
@@ -103,7 +103,7 @@ test('usage validation rejects bad payloads', function () {
         ->assertJsonValidationErrors(['metadata.k']);
 });
 
-test('negative deltas record corrections', function () {
+test('negative deltas record corrections', function (): void {
     ['company' => $company, 'owner' => $owner] = usageTenant();
 
     $this->actingAs($owner, 'api')

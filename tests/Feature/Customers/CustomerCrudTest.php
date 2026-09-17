@@ -12,7 +12,7 @@ function staffUser(Company $company, string $role): User
     ]);
 }
 
-test('all members can list customers', function (string $role) {
+test('all members can list customers', function (string $role): void {
     $company = Company::factory()->withOwner()->create();
     $user = staffUser($company, $role);
     Customer::factory()->count(3)->create(['company_id' => $company->id]);
@@ -25,7 +25,7 @@ test('all members can list customers', function (string $role) {
         ->assertJsonCount(3, 'data');
 })->with(['owner', 'admin', 'member']);
 
-test('customers support search, status filter, and pagination', function () {
+test('customers support search, status filter, and pagination', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = staffUser($company, 'admin');
 
@@ -56,7 +56,7 @@ test('customers support search, status filter, and pagination', function () {
         ->assertUnprocessable();
 });
 
-test('admins can create customers', function () {
+test('admins can create customers', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = staffUser($company, 'admin');
 
@@ -75,7 +75,7 @@ test('admins can create customers', function () {
         ->toBe($company->id);
 });
 
-test('members cannot create, update, or delete customers', function () {
+test('members cannot create, update, or delete customers', function (): void {
     $company = Company::factory()->withOwner()->create();
     $member = staffUser($company, 'member');
     $customer = Customer::factory()->create(['company_id' => $company->id]);
@@ -93,7 +93,7 @@ test('members cannot create, update, or delete customers', function () {
         ->assertForbidden();
 });
 
-test('customer emails are unique per company only', function () {
+test('customer emails are unique per company only', function (): void {
     $companyA = Company::factory()->withOwner()->create();
     $companyB = Company::factory()->withOwner()->create();
 
@@ -109,7 +109,7 @@ test('customer emails are unique per company only', function () {
         ->assertJsonValidationErrors(['email']);
 });
 
-test('deleted customers free their email for reuse', function () {
+test('deleted customers free their email for reuse', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = staffUser($company, 'admin');
     $customer = Customer::factory()->create(['company_id' => $company->id, 'email' => 'gone@shop.test']);
@@ -123,7 +123,7 @@ test('deleted customers free their email for reuse', function () {
         ->assertCreated();
 });
 
-test('customers can be shown and updated', function () {
+test('customers can be shown and updated', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = staffUser($company, 'admin');
     $customer = Customer::factory()->create(['company_id' => $company->id]);
@@ -143,7 +143,7 @@ test('customers can be shown and updated', function () {
         ->assertJsonPath('customer.status', 'inactive');
 });
 
-test('updating a customer to a duplicate email fails', function () {
+test('updating a customer to a duplicate email fails', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = staffUser($company, 'admin');
     $first = Customer::factory()->create(['company_id' => $company->id, 'email' => 'first@shop.test']);

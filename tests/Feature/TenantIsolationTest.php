@@ -28,7 +28,7 @@ function tenantFixture(string $emailDomain): array
     return ['company' => $company, 'admin' => $admin, 'member' => $member, 'customer' => $customer];
 }
 
-test('tenant A cannot read tenant B users or customers', function () {
+test('tenant A cannot read tenant B users or customers', function (): void {
     $a = tenantFixture('a.test');
     $b = tenantFixture('b.test');
 
@@ -41,7 +41,7 @@ test('tenant A cannot read tenant B users or customers', function () {
         ->assertNotFound();
 });
 
-test('tenant A cannot modify tenant B users or customers', function () {
+test('tenant A cannot modify tenant B users or customers', function (): void {
     $a = tenantFixture('a.test');
     $b = tenantFixture('b.test');
 
@@ -67,7 +67,7 @@ test('tenant A cannot modify tenant B users or customers', function () {
         ->and($b['customer']->fresh()->deleted_at)->toBeNull();
 });
 
-test('tenant listings never include other tenants records', function () {
+test('tenant listings never include other tenants records', function (): void {
     $a = tenantFixture('a.test');
     $b = tenantFixture('b.test');
 
@@ -83,7 +83,7 @@ test('tenant listings never include other tenants records', function () {
         ->and($customerEmails)->not->toContain($b['customer']->email);
 });
 
-test('company endpoint always returns the actor own company', function () {
+test('company endpoint always returns the actor own company', function (): void {
     $a = tenantFixture('a.test');
     $b = tenantFixture('b.test');
 
@@ -94,7 +94,7 @@ test('company endpoint always returns the actor own company', function () {
         ->assertJsonMissing(['id' => $b['company']->id]);
 });
 
-test('invalid identifiers return 404', function () {
+test('invalid identifiers return 404', function (): void {
     $a = tenantFixture('a.test');
 
     $this->actingAs($a['admin'], 'api')
@@ -106,7 +106,7 @@ test('invalid identifiers return 404', function () {
         ->assertNotFound();
 });
 
-test('non-numeric identifiers are rejected by route constraints', function () {
+test('non-numeric identifiers are rejected by route constraints', function (): void {
     $a = tenantFixture('a.test');
 
     $this->actingAs($a['admin'], 'api')

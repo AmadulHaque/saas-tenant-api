@@ -26,7 +26,7 @@ function limitedTenant(int $maxUsers, int $maxCustomers): array
     return ['company' => $company, 'owner' => $company->owner, 'plan' => $plan];
 }
 
-test('user creation is capped by the plan max_users limit', function () {
+test('user creation is capped by the plan max_users limit', function (): void {
     ['company' => $company, 'owner' => $owner] = limitedTenant(2, 10);
 
     // Owner occupies one seat; one more allowed.
@@ -50,7 +50,7 @@ test('user creation is capped by the plan max_users limit', function () {
         ->assertJsonValidationErrors(['limit']);
 });
 
-test('customer creation is capped by the plan max_customers limit', function () {
+test('customer creation is capped by the plan max_customers limit', function (): void {
     ['company' => $company, 'owner' => $owner] = limitedTenant(10, 1);
 
     $this->actingAs($owner, 'api')
@@ -63,7 +63,7 @@ test('customer creation is capped by the plan max_customers limit', function () 
         ->assertJsonValidationErrors(['limit']);
 });
 
-test('soft-deleted records free their seats', function () {
+test('soft-deleted records free their seats', function (): void {
     ['company' => $company, 'owner' => $owner] = limitedTenant(2, 1);
     $admin = User::factory()->create(['company_id' => $company->id, 'role' => 'admin']);
 
@@ -86,7 +86,7 @@ test('soft-deleted records free their seats', function () {
         ->assertCreated();
 });
 
-test('null limits mean unlimited', function () {
+test('null limits mean unlimited', function (): void {
     $plan = SubscriptionPlan::factory()->withoutLimits()->create();
     $company = Company::factory()->withOwner()->create();
 
@@ -107,7 +107,7 @@ test('null limits mean unlimited', function () {
     }
 });
 
-test('companies without an active subscription are not limited', function () {
+test('companies without an active subscription are not limited', function (): void {
     $company = Company::factory()->withOwner()->create();
 
     $this->actingAs($company->owner, 'api')
@@ -115,7 +115,7 @@ test('companies without an active subscription are not limited', function () {
         ->assertCreated();
 });
 
-test('cancelling the subscription stops future limit checks', function () {
+test('cancelling the subscription stops future limit checks', function (): void {
     ['company' => $company, 'owner' => $owner] = limitedTenant(10, 1);
 
     $this->actingAs($owner, 'api')

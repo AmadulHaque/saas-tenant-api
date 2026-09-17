@@ -11,7 +11,7 @@ function actingCompanyUser(Company $company, string $role): User
     ]);
 }
 
-test('owners and admins can list company users', function (string $role) {
+test('owners and admins can list company users', function (string $role): void {
     $company = Company::factory()->withOwner()->create();
     $actor = actingCompanyUser($company, $role);
 
@@ -22,7 +22,7 @@ test('owners and admins can list company users', function (string $role) {
         ->assertJsonCount(2, 'data');
 })->with(['owner', 'admin']);
 
-test('members cannot list company users', function () {
+test('members cannot list company users', function (): void {
     $company = Company::factory()->withOwner()->create();
     $member = actingCompanyUser($company, 'member');
 
@@ -31,7 +31,7 @@ test('members cannot list company users', function () {
         ->assertForbidden();
 });
 
-test('user list is paginated with a per_page cap', function () {
+test('user list is paginated with a per_page cap', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = actingCompanyUser($company, 'admin');
     User::factory()->count(12)->create(['company_id' => $company->id, 'role' => 'member']);
@@ -54,7 +54,7 @@ test('user list is paginated with a per_page cap', function () {
         ->assertJsonCount(14, 'data');
 });
 
-test('user list supports search and role filters', function () {
+test('user list supports search and role filters', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = actingCompanyUser($company, 'admin');
     User::factory()->create(['name' => 'Zara Unique', 'company_id' => $company->id, 'role' => 'member']);
@@ -76,7 +76,7 @@ test('user list supports search and role filters', function () {
         ->assertUnprocessable();
 });
 
-test('admins can create users with admin or member roles', function (string $role) {
+test('admins can create users with admin or member roles', function (string $role): void {
     $company = Company::factory()->withOwner()->create();
     $admin = actingCompanyUser($company, 'admin');
 
@@ -96,7 +96,7 @@ test('admins can create users with admin or member roles', function (string $rol
         ->toBe($company->id);
 })->with(['admin', 'member']);
 
-test('users cannot be created with the owner role', function () {
+test('users cannot be created with the owner role', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = actingCompanyUser($company, 'admin');
 
@@ -111,7 +111,7 @@ test('users cannot be created with the owner role', function () {
         ->assertJsonValidationErrors(['role']);
 });
 
-test('user creation validates duplicates and password strength', function () {
+test('user creation validates duplicates and password strength', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = actingCompanyUser($company, 'admin');
 
@@ -126,7 +126,7 @@ test('user creation validates duplicates and password strength', function () {
         ->assertJsonValidationErrors(['email', 'password']);
 });
 
-test('admins can view and update non-owner users', function () {
+test('admins can view and update non-owner users', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = actingCompanyUser($company, 'admin');
     $member = actingCompanyUser($company, 'member');
@@ -143,7 +143,7 @@ test('admins can view and update non-owner users', function () {
         ->assertJsonPath('user.role', 'admin');
 });
 
-test('owner accounts cannot be modified or deleted via the API', function () {
+test('owner accounts cannot be modified or deleted via the API', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = actingCompanyUser($company, 'admin');
     $owner = $company->owner;
@@ -159,7 +159,7 @@ test('owner accounts cannot be modified or deleted via the API', function () {
     expect($owner->fresh()->deleted_at)->toBeNull();
 });
 
-test('admins cannot delete themselves', function () {
+test('admins cannot delete themselves', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = actingCompanyUser($company, 'admin');
 
@@ -170,7 +170,7 @@ test('admins cannot delete themselves', function () {
     expect($admin->fresh()->deleted_at)->toBeNull();
 });
 
-test('deleting a user soft-deletes and revokes their tokens', function () {
+test('deleting a user soft-deletes and revokes their tokens', function (): void {
     $company = Company::factory()->withOwner()->create();
     $admin = actingCompanyUser($company, 'admin');
     $member = actingCompanyUser($company, 'member');

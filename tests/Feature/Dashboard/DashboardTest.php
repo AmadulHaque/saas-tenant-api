@@ -26,7 +26,7 @@ function seedSubscription(Company $company, SubscriptionPlan $plan): Subscriptio
     ]);
 }
 
-test('dashboard shows counts, subscription, and recent activity for all roles', function () {
+test('dashboard shows counts, subscription, and recent activity for all roles', function (): void {
     ['company' => $company, 'owner' => $owner, 'admin' => $admin] = dashTenant();
     $plan = SubscriptionPlan::factory()->create(['name' => 'Dash Pro', 'billing_interval' => 'monthly']);
     seedSubscription($company, $plan);
@@ -45,7 +45,7 @@ test('dashboard shows counts, subscription, and recent activity for all roles', 
     }
 });
 
-test('dashboard without a subscription reports null', function () {
+test('dashboard without a subscription reports null', function (): void {
     ['company' => $company, 'owner' => $owner] = dashTenant();
 
     $this->actingAs($owner, 'api')
@@ -54,7 +54,7 @@ test('dashboard without a subscription reports null', function () {
         ->assertJsonPath('dashboard.subscription', null);
 });
 
-test('cache is hit: direct database writes stay invisible until TTL or invalidation', function () {
+test('cache is hit: direct database writes stay invisible until TTL or invalidation', function (): void {
     ['company' => $company, 'owner' => $owner] = dashTenant();
 
     $this->actingAs($owner, 'api')->getJson('/api/v1/dashboard')->assertOk();
@@ -68,7 +68,7 @@ test('cache is hit: direct database writes stay invisible until TTL or invalidat
         ->assertJsonPath('dashboard.total_users', 2);
 });
 
-test('api mutation invalidates the tenant cache immediately', function () {
+test('api mutation invalidates the tenant cache immediately', function (): void {
     ['company' => $company, 'owner' => $owner] = dashTenant();
 
     $this->actingAs($owner, 'api')->getJson('/api/v1/dashboard')->assertOk();
@@ -88,7 +88,7 @@ test('api mutation invalidates the tenant cache immediately', function () {
         ->assertJsonPath('dashboard.total_users', 3);
 });
 
-test('cache keys are tenant isolated', function () {
+test('cache keys are tenant isolated', function (): void {
     $a = Company::factory()->withOwner()->create();
     $b = Company::factory()->withOwner()->create();
 
@@ -99,7 +99,7 @@ test('cache keys are tenant isolated', function () {
         ->and(Cache::tags(['dashboard', "tenant:{$b->id}"])->get("tenant:{$a->id}:dashboard"))->toBeNull();
 });
 
-test('invalidating one tenant does not evict another tenant cache', function () {
+test('invalidating one tenant does not evict another tenant cache', function (): void {
     ['company' => $a, 'owner' => $ownerA] = dashTenant();
     $b = Company::factory()->withOwner()->create();
 
@@ -122,7 +122,7 @@ test('invalidating one tenant does not evict another tenant cache', function () 
         ->assertJsonPath('dashboard.total_customers', 1);
 });
 
-test('redis failure falls back to computing fresh data', function () {
+test('redis failure falls back to computing fresh data', function (): void {
     ['company' => $company, 'owner' => $owner] = dashTenant();
     Customer::factory()->create(['company_id' => $company->id]);
 
@@ -134,7 +134,7 @@ test('redis failure falls back to computing fresh data', function () {
         ->assertJsonPath('dashboard.total_customers', 1);
 });
 
-test('plans list is cached and refreshed after plan changes', function () {
+test('plans list is cached and refreshed after plan changes', function (): void {
     $company = Company::factory()->withOwner()->create();
     SubscriptionPlan::factory()->create(['name' => 'One']);
 
@@ -157,7 +157,7 @@ test('plans list is cached and refreshed after plan changes', function () {
         ->assertJsonCount(2, 'data');
 });
 
-test('cancelling a subscription refreshes dashboard data', function () {
+test('cancelling a subscription refreshes dashboard data', function (): void {
     ['company' => $company, 'owner' => $owner] = dashTenant();
     seedSubscription($company, SubscriptionPlan::factory()->create());
 

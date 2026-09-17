@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Hash;
 
 use function Pest\Laravel\assertDatabaseHas;
 
-test('registration creates tenant, owner, and usable token', function () {
+test('registration creates tenant, owner, and usable token', function (): void {
     $response = $this->postJson('/api/v1/auth/register', [
         'name' => 'Jane Doe',
         'email' => 'jane@example.test',
@@ -42,7 +42,7 @@ test('registration creates tenant, owner, and usable token', function () {
         ->assertJsonPath('user.email', 'jane@example.test');
 });
 
-test('registration validates required fields and uniqueness', function () {
+test('registration validates required fields and uniqueness', function (): void {
     User::factory()->create(['email' => 'taken@example.test']);
 
     $response = $this->postJson('/api/v1/auth/register', [
@@ -56,7 +56,7 @@ test('registration validates required fields and uniqueness', function () {
         ->assertJsonValidationErrors(['name', 'email', 'password', 'company_name']);
 });
 
-test('identical company names receive distinct slugs', function () {
+test('identical company names receive distinct slugs', function (): void {
     $payload = fn (string $email): array => [
         'name' => 'Owner',
         'email' => $email,
@@ -70,7 +70,7 @@ test('identical company names receive distinct slugs', function () {
     expect($first->json('company.slug'))->not->toBe($second->json('company.slug'));
 });
 
-test('registration response never exposes the password', function () {
+test('registration response never exposes the password', function (): void {
     $response = $this->postJson('/api/v1/auth/register', [
         'name' => 'Jane Doe',
         'email' => 'safe@example.test',

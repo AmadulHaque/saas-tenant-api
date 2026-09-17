@@ -4,7 +4,7 @@ use App\Models\Company;
 use App\Models\User;
 use Laravel\Passport\Passport;
 
-test('logout revokes the current token', function () {
+test('logout revokes the current token', function (): void {
     $company = Company::factory()->create();
     $user = User::factory()->create(['company_id' => $company->id, 'role' => 'owner']);
 
@@ -26,11 +26,11 @@ test('logout revokes the current token', function () {
     $this->getJson('/api/v1/me', $headers)->assertUnauthorized();
 });
 
-test('logout requires authentication', function () {
+test('logout requires authentication', function (): void {
     $this->postJson('/api/v1/auth/logout')->assertUnauthorized();
 });
 
-test('authenticated users reach protected routes via actingAs', function () {
+test('authenticated users reach protected routes via actingAs', function (): void {
     $company = Company::factory()->create();
     $user = User::factory()->create(['company_id' => $company->id, 'role' => 'admin']);
 

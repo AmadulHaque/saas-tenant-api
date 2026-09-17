@@ -23,7 +23,7 @@ function expirableTenant(string $endsAt): Company
     return $company;
 }
 
-test('sweep expires past-due subscriptions globally and keeps live ones', function () {
+test('sweep expires past-due subscriptions globally and keeps live ones', function (): void {
     $pastDue = expirableTenant(now()->subDay()->toISOString());
     $future = expirableTenant(now()->addWeek()->toISOString());
     $openEnded = expirableTenant(now()->addMonths(2)->toISOString());
@@ -37,7 +37,7 @@ test('sweep expires past-due subscriptions globally and keeps live ones', functi
         ->and($openEnded->activeSubscription()->exists())->toBeTrue();
 });
 
-test('command reports the number of expired subscriptions', function () {
+test('command reports the number of expired subscriptions', function (): void {
     expirableTenant(now()->subHour()->toISOString());
     expirableTenant(now()->subMinute()->toISOString());
 
@@ -49,13 +49,13 @@ test('command reports the number of expired subscriptions', function () {
         ->and(Subscription::query()->where('status', 'active')->count())->toBe(0);
 });
 
-test('command with nothing to do succeeds with zero', function () {
+test('command with nothing to do succeeds with zero', function (): void {
     $this->artisan('subscriptions:expire')
         ->expectsOutputToContain('Expired 0 past-due subscription(s).')
         ->assertSuccessful();
 });
 
-test('sweep flushes affected tenants dashboard cache only', function () {
+test('sweep flushes affected tenants dashboard cache only', function (): void {
     $affected = expirableTenant(now()->subHour()->toISOString());
     $untouched = expirableTenant(now()->addWeek()->toISOString());
 
@@ -70,7 +70,7 @@ test('sweep flushes affected tenants dashboard cache only', function () {
         ->and(Cache::tags(['dashboard', "tenant:{$untouched->id}"])->get("tenant:{$untouched->id}:dashboard"))->not->toBeNull();
 });
 
-test('expiration sweep is scheduled hourly', function () {
+test('expiration sweep is scheduled hourly', function (): void {
     $events = collect(Schedule::events())
         ->map(fn ($event) => $event->command ?? '')
         ->implode(' ');

@@ -18,7 +18,7 @@ function authed(object $tenant): array
     return ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/json'];
 }
 
-test('every response carries an X-Request-Id', function () {
+test('every response carries an X-Request-Id', function (): void {
     $tenant = middlewareTenant();
 
     $response = $this->getJson('/api/v1/me', authed($tenant));
@@ -28,7 +28,7 @@ test('every response carries an X-Request-Id', function () {
     expect($response->headers->get('X-Request-Id'))->toMatch('/^[0-9a-f-]{36}$/');
 });
 
-test('a valid client supplied request id is preserved end to end', function () {
+test('a valid client supplied request id is preserved end to end', function (): void {
     $tenant = middlewareTenant();
 
     $response = $this->getJson('/api/v1/me', authed($tenant) + ['X-Request-Id' => 'client-abc-123456789']);
@@ -37,7 +37,7 @@ test('a valid client supplied request id is preserved end to end', function () {
         ->assertHeader('X-Request-Id', 'client-abc-123456789');
 });
 
-test('an unsafe client supplied request id is replaced', function () {
+test('an unsafe client supplied request id is replaced', function (): void {
     $tenant = middlewareTenant();
 
     $response = $this->getJson('/api/v1/me', authed($tenant) + ['X-Request-Id' => "evil<script>\n"]);
@@ -47,7 +47,7 @@ test('an unsafe client supplied request id is replaced', function () {
     expect($response->headers->get('X-Request-Id'))->toMatch('/^[0-9a-f-]{36}$/');
 });
 
-test('responses advertise content language', function () {
+test('responses advertise content language', function (): void {
     $tenant = middlewareTenant();
 
     $this->getJson('/api/v1/me', authed($tenant))
@@ -55,7 +55,7 @@ test('responses advertise content language', function () {
         ->assertHeader('Content-Language', 'en');
 });
 
-test('json responses carry hardening and timing headers', function () {
+test('json responses carry hardening and timing headers', function (): void {
     $tenant = middlewareTenant();
 
     $response = $this->getJson('/api/v1/me', authed($tenant));
@@ -68,7 +68,7 @@ test('json responses carry hardening and timing headers', function () {
     expect($response->headers->get('X-Response-Time'))->toEndWith('ms');
 });
 
-test('non-json request bodies are rejected with 415', function () {
+test('non-json request bodies are rejected with 415', function (): void {
     $tenant = middlewareTenant();
 
     $this->post(
@@ -79,7 +79,7 @@ test('non-json request bodies are rejected with 415', function () {
         ->assertJsonPath('message', 'Requests with a body must be sent as application/json.');
 });
 
-test('api request logging can be enabled', function () {
+test('api request logging can be enabled', function (): void {
     $tenant = middlewareTenant();
     Log::spy();
     config()->set('logging.log_api_requests', true);
@@ -89,7 +89,7 @@ test('api request logging can be enabled', function () {
     Log::assertLogged('api.request');
 });
 
-test('api request logging is disabled by default', function () {
+test('api request logging is disabled by default', function (): void {
     $tenant = middlewareTenant();
     Log::spy();
 
@@ -98,7 +98,7 @@ test('api request logging is disabled by default', function () {
     Log::assertNotLogged('api.request');
 });
 
-test('idempotency key replays the first response without duplicating writes', function () {
+test('idempotency key replays the first response without duplicating writes', function (): void {
     $tenant = middlewareTenant();
     $headers = authed($tenant) + ['Idempotency-Key' => 'create-customer-1', 'Content-Type' => 'application/json'];
     $payload = ['name' => 'Idem Customer', 'email' => 'idem@customer.test'];
@@ -114,7 +114,7 @@ test('idempotency key replays the first response without duplicating writes', fu
     expect($tenant->company->customers()->count())->toBe(1);
 });
 
-test('reusing an idempotency key with a different payload conflicts', function () {
+test('reusing an idempotency key with a different payload conflicts', function (): void {
     $tenant = middlewareTenant();
     $headers = authed($tenant) + ['Idempotency-Key' => 'conflict-key-1', 'Content-Type' => 'application/json'];
 
@@ -125,7 +125,7 @@ test('reusing an idempotency key with a different payload conflicts', function (
         ->assertJsonPath('message', 'This Idempotency-Key was already used with a different request payload.');
 });
 
-test('malformed idempotency keys are rejected with 422', function () {
+test('malformed idempotency keys are rejected with 422', function (): void {
     $tenant = middlewareTenant();
 
     $this->postJson('/api/v1/customers', ['name' => 'X', 'email' => 'x@key.test'],
@@ -134,7 +134,7 @@ test('malformed idempotency keys are rejected with 422', function () {
         ->assertJsonPath('message', fn (string $message) => str_contains($message, 'Idempotency-Key'));
 });
 
-test('idempotency cache entries expire after the configured ttl', function () {
+test('idempotency cache entries expire after the configured ttl', function (): void {
     expect(config('idempotency.ttl_minutes'))->toBeInt()->toBeGreaterThan(0);
 
     Cache::put('probe', 'ok', now()->addMinutes(config('idempotency.ttl_minutes')));
