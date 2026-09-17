@@ -9,5 +9,6 @@ Route::prefix('v1')->group(function (): void {
 
     Route::middleware(['auth:api', 'throttle:authenticated'])->group(function (): void {
         require __DIR__.'/v1/me.php';
+        require __DIR__.'/v1/company.php';
     });
 });
