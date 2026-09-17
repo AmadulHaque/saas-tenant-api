@@ -92,6 +92,17 @@ Plan shape: `{ "id", "name", "slug", "price_cents", "billing_interval": "monthly
 
 Subscription shape: `{ "id", "status", "starts_at", "ends_at", "cancelled_at", "plan": {…} }`.
 
+### Usage (owner/admin only)
+
+Append-only ledger of subscription feature usage. Deltas may be negative (corrections); rows are never updated or deleted.
+
+| Method | Path | Description |
+| --- | --- | --- |
+| GET | `/usage` | Paginated ledger, newest first. Filter: `feature`. `per_page` 1–100, default 15. |
+| POST | `/usage` | Body: `feature` (string ≤50, `[a-z0-9_.-]`, lowercased), `delta` (integer, non-zero, ±1,000,000), `metadata?` (flat `map<string,string>`, ≤10 entries). |
+
+Usage shape: `{ "id", "feature", "delta", "metadata", "recorded_at" }`.
+
 ### Dashboard
 
 | Method | Path | Roles | Description |

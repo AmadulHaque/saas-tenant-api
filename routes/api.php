@@ -15,5 +15,6 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
         require __DIR__.'/v1/subscription.php';
         require __DIR__.'/v1/plans.php';
         require __DIR__.'/v1/dashboard.php';
+        require __DIR__.'/v1/usage.php';
     });
 });

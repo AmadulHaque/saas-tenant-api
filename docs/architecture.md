@@ -34,6 +34,7 @@ Single Responsibility Principle applied at the route level: **one invokable cont
 | `SubscriptionService` | Subscribe/change plan (row lock on company), cancel, lazy expiration, global sweep, feature-limit resolution |
 | `SubscriptionLimitService` | Count-and-create under a transaction + `lockForUpdate` on the company row; breach → `ValidationException` (422) |
 | `DashboardService` | Cached analytics assembly |
+| `UsageService` | Append-only usage ledger: signed deltas per feature, totals |
 
 Critical synchronous logic (authorization, limit enforcement) never leaves this layer — nothing async guards writes.
 

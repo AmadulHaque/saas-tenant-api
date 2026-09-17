@@ -13,6 +13,7 @@ Companies (tenants) register, manage users and customers, subscribe to plans wit
 - **Subscriptions** — subscribe, change plan (old row cancelled, history kept), cancel, automatic expiration (lazy + scheduled hourly sweep). One active subscription per tenant is enforced by a **partial unique index** in the database, not just application logic.
 - **Feature limits** — `max_users` / `max_customers` enforced on creation under a row lock so concurrent requests cannot exceed a plan.
 - **Dashboard analytics** — per-tenant counts, subscription summary, recent activity.
+- **Usage tracking** — append-only usage ledger (`POST/GET /usage`) with signed deltas per feature.
 - **Redis caching** — per-tenant dashboard cache and shared plan cache with observer-driven invalidation and a Redis-unavailable fallback (see `docs/caching.md`).
 - **Background jobs** — scheduled `subscriptions:expire` command (hourly, `withoutOverlapping`, `onOneServer`). No artificial queued jobs — see `docs/decisions.md`.
 - **Rate limiting** — 5/min on auth endpoints (IP + email), 60/min global API, 60/min on authenticated routes.
@@ -184,6 +185,7 @@ Password for all demo accounts: `password`
 - Soft-deleted records are excluded from counts immediately; hard-deletion is not exposed via the API.
 - Payment/billing is out of scope: `price_cents` and billing intervals exist but no invoices.
 - Plan limits are read from JSONB; changing a plan's limits mid-flight affects existing subscribers immediately.
+- Usage is recorded but not yet surfaced on the dashboard or enforced against plan limits.
 - The PostgreSQL-only constraints are skipped (not faked) in the SQLite test run; they are exercised live and in `tests/Feature/SchemaTest` on pgsql.
 
 ## Trade-offs

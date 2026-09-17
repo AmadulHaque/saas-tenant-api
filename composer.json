@@ -60,7 +60,7 @@
             "@php ./vendor/bin/pint --test --parallel",
             "@php ./vendor/bin/rector --dry-run"
         ],
-        "types": "@php ./vendor/bin/phpstan analyse --memory-limit=-1",
+        "types": "@php ./vendor/bin/phpstan analyse app tests database/factories database/seeders bootstrap lang --memory-limit=-1 --no-progress",
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test --parallel --recreate-databases"

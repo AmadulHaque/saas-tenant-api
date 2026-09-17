@@ -69,6 +69,11 @@ class Company extends Model
         return $this->hasMany(Subscription::class);
     }
 
+    public function usageRecords(): HasMany
+    {
+        return $this->hasMany(UsageRecord::class);
+    }
+
     /**
      * The current active subscription, if any.
      *

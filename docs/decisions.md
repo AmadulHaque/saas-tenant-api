@@ -53,8 +53,9 @@ Every subscription read first expires past-due rows (correctness independent of 
 
 **D17 — No artificial queued jobs.** The brief allows skipping async work when nothing genuinely benefits. Nothing here does: expiration is a scheduled command, limit enforcement must be synchronous (D8), and there are no emails/exports yet. The scheduler + Horizon infrastructure is in place so a real async need (notifications, aggregation) can be added without re-plumbing.
 
+**D18 — Usage is an append-only ledger with signed deltas.** `POST /usage` records `{feature, delta, metadata}`; corrections are negative deltas, never updates. Totals are a `SUM` over `(company_id, feature)`. Usage is not part of the dashboard payload, so — per the doc's own rule — no cache invalidation is wired for it (there is nothing cached to invalidate). Enforcing limits against usage totals is deliberately left to plan limits (`max_users`/`max_customers`), which are count-based.
+
 ## Known debt / upstream breakage
 
-- `composer types` (`phpstan analyse` with no paths and no `phpstan.neon` in the scaffold) fails as shipped upstream. Static analysis is run with explicit paths instead: `vendor/bin/phpstan analyse app tests database/factories database/seeders bootstrap --memory-limit=-1`.
-- `usage_records` is scaffolded (schema, model, factory) but not yet written by any endpoint.
+- The scaffold's `composer types` script (phpstan with no paths, no `phpstan.neon`) failed as shipped upstream; it has been fixed to analyse `app tests database/factories database/seeders bootstrap lang`.
 - The Docker Compose stack was authored but not build-verified in the development environment (daemon unavailable); it is intentionally conservative (official images, healthchecks, entrypoint waits for Postgres).
