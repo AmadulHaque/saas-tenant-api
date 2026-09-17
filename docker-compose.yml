@@ -1,0 +1,89 @@
+name: saas-tenant-api
+
+x-app-base: &app-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  environment: &app-env
+    APP_ENV: production
+    APP_DEBUG: "false"
+    APP_URL: http://localhost:8000
+    LOG_CHANNEL: stderr
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_DATABASE: saas_tenant
+    DB_USERNAME: saas
+    DB_PASSWORD: secret
+    CACHE_STORE: redis
+    REDIS_CLIENT: phpredis
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    QUEUE_CONNECTION: redis
+    OCTANE_SERVER: frankenphp
+
+services:
+  app:
+    <<: *app-base
+    environment:
+      <<: *app-env
+      CONTAINER_ROLE: app
+      SEED_DEMO: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - app-storage:/app/storage
+
+  horizon:
+    <<: *app-base
+    environment:
+      <<: *app-env
+      CONTAINER_ROLE: horizon
+    volumes:
+      - app-storage:/app/storage
+
+  scheduler:
+    <<: *app-base
+    environment:
+      <<: *app-env
+      CONTAINER_ROLE: scheduler
+    volumes:
+      - app-storage:/app/storage
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: saas_tenant
+      POSTGRES_USER: saas
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saas -d saas_tenant"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
+  app-storage:

@@ -1,58 +1,193 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SaaS Tenant API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A production-style SaaS Subscription & Tenant Management REST API built with **Laravel 13**, **PHP 8.4**, **PostgreSQL**, **Redis**, **Passport**, and **Octane (FrankenPHP)**.
 
-## About Laravel
+Companies (tenants) register, manage users and customers, subscribe to plans with per-feature limits, and read analytics from a cached dashboard. Data isolation is enforced at the query and policy layers.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Authentication** — Laravel Passport personal access tokens (30-day lifetime). Register, login, logout (token revocation), `/me`.
+- **Authorization** — role column (`owner`, `admin`, `member`) with Laravel Policies. Subscription management is owner-only.
+- **Multi-tenancy** — shared database with `company_id` scoping. Cross-tenant IDs resolve to `404`; insufficient role returns `403`.
+- **Subscription plans** — public-to-authenticated plan catalog (monthly/yearly pricing, JSONB feature limits).
+- **Subscriptions** — subscribe, change plan (old row cancelled, history kept), cancel, automatic expiration (lazy + scheduled hourly sweep). One active subscription per tenant is enforced by a **partial unique index** in the database, not just application logic.
+- **Feature limits** — `max_users` / `max_customers` enforced on creation under a row lock so concurrent requests cannot exceed a plan.
+- **Dashboard analytics** — per-tenant counts, subscription summary, recent activity.
+- **Redis caching** — per-tenant dashboard cache and shared plan cache with observer-driven invalidation and a Redis-unavailable fallback (see `docs/caching.md`).
+- **Background jobs** — scheduled `subscriptions:expire` command (hourly, `withoutOverlapping`, `onOneServer`). No artificial queued jobs — see `docs/decisions.md`.
+- **Rate limiting** — 5/min on auth endpoints (IP + email), 60/min global API, 60/min on authenticated routes.
+- **API documentation** — auto-generated OpenAPI via [Scramble](https://scramble.dedoc.com/) at `/docs/api`.
+- **Tooling** — Pest tests, PHPStan (level max), Laravel Pint, Horizon, Telescope.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Requirements
 
-## Learning Laravel
+- PHP 8.4+ with extensions: `pdo_pgsql`, `redis` (phpredis), `pcntl`, `mbstring`, `openssl`
+- Composer 2
+- PostgreSQL 16+
+- Redis 7+
+- Docker + Docker Compose (optional, for containerized setup)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Installation
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone <repository-url> saas-tenant-api
+cd saas-tenant-api
+composer install
+cp .env.example .env
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Environment setup
 
-## Contributing
+`.env.example` ships with safe placeholders and is the source of truth for required variables:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```ini
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=saas-tenant-db
+DB_USERNAME=...
+DB_PASSWORD=...
 
-## Code of Conduct
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+For local development against a plain Laravel server, `CACHE_STORE` may be set to any tag-capable store (`redis`, `array`). Tags are required by the caching layer.
 
-## Security Vulnerabilities
+## Database setup
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan migrate              # create schema
+php artisan db:seed              # plans, demo tenant, Passport PAT client
+```
 
-## License
+Or reset everything at once:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan migrate:fresh --seed
+```
+
+Seeders create:
+
+- Plans: **Free** ($0, 3 users, 50 customers), **Starter** ($29/mo, 10 users, 500 customers), **Pro** ($99/mo, 50 users, 5000 customers)
+- Demo tenant **Acme Ltd** (`acme`) with owner, admin, and member accounts
+- The Passport **Personal Access Client**
+
+## Authentication instructions
+
+All API routes require `Accept: application/json`. Personal access tokens are sent as bearer tokens:
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Accept: application/json" -H "Content-Type: application/json" \
+  -d '{"email":"owner@acme.test","password":"password"}' | jq -r .token)
+
+curl -s http://localhost:8000/api/v1/me -H "Accept: application/json" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Tokens are created at registration/login and revoked on logout. Lifetime is 30 days (`Passport::personalAccessTokensExpireIn`).
+
+## API usage
+
+Base URL: `/api/v1`. Full reference: `docs/api.md` or the live OpenAPI document at `/docs/api.json`.
+
+```bash
+# Create a user (owner/admin only, counts toward max_users)
+curl -s -X POST http://localhost:8000/api/v1/users \
+  -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Jane","email":"jane@acme.test","password":"secret123","role":"member"}'
+
+# Subscribe to the Pro plan
+curl -s -X POST http://localhost:8000/api/v1/subscription \
+  -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"plan_id":3}'
+
+# Cached dashboard analytics
+curl -s http://localhost:8000/api/v1/dashboard \
+  -H "Accept: application/json" -H "Authorization: Bearer $TOKEN"
+```
+
+Validation errors return `422` with a `{ "message", "errors" }` payload; authorization failures return `403`; resources belonging to another tenant return `404`.
+
+## Test commands
+
+```bash
+composer test                                     # full suite (parallel)
+php artisan test --compact                       # sequential
+vendor/bin/pest tests/Feature/Subscriptions       # single directory
+vendor/bin/pint --dirty                          # code style
+vendor/bin/phpstan analyse app tests bootstrap --memory-limit=-1   # static analysis
+```
+
+The suite runs on SQLite `:memory:` by default (see `phpunit.xml`). PostgreSQL-only constraints (partial unique index, period check) are additionally verified by a dedicated test that skips on SQLite.
+
+## Docker commands
+
+```bash
+docker compose up --build -d     # app (Octane), postgres, redis, horizon, scheduler
+docker compose logs -f app       # watch the API
+docker compose down -v           # tear down (drops data)
+```
+
+The app container migrates on boot and seeds demo data on first start (`SEED_DEMO=true`). Swagger/OpenAPI is exposed at `http://localhost:8000/docs/api.json`. The compose file is untested against a live daemon in this environment; report issues with `docker compose logs`.
+
+## Redis setup
+
+Redis is required for cache, rate limiter counters, and the queue backend. Start it locally with:
+
+```bash
+redis-server
+```
+
+`CACHE_STORE=redis` and `REDIS_HOST`/`REDIS_PORT` must point at the instance. The API degrades gracefully if Redis goes down mid-flight (fresh computes instead of cached reads) — see `docs/caching.md`.
+
+## Queue setup
+
+Queues use the `redis` connection and are monitored by **Horizon**:
+
+```bash
+php artisan horizon                      # queue dashboard on /horizon
+php artisan schedule:work                # local scheduler (subscriptions:expire, hourly)
+```
+
+In production, run the scheduler via cron: `* * * * * php /path/artisan schedule:run`.
+
+## Demo credentials
+
+Password for all demo accounts: `password`
+
+| Email | Role |
+| --- | --- |
+| `owner@acme.test` | owner |
+| `admin@acme.test` | admin |
+| `member@acme.test` | member |
+
+## Architecture summary
+
+- **Routes** (`routes/api.php`, versioned `/api/v1`) → **Form Requests** (validation) → **Controllers** (`App\Http\Controllers\Api\V1`) → **Services** (`App\Services`) → **Eloquent models**.
+- **Services**: `TenantRegistrationService`, `SubscriptionService`, `SubscriptionLimitService`, `DashboardService`.
+- **Authorization**: `App\Policies` + `ChecksTenant` concern; role + tenant checks in one place.
+- **Cache invalidation**: `App\Observers` flush tenant dashboards and plan cache on writes.
+- **Expiration**: lazy check on every subscription read + hourly global sweep.
+- Details: `docs/architecture.md`, `docs/database.md`, `docs/caching.md`, `docs/decisions.md`.
+
+## Known limitations
+
+- One user belongs to exactly one company (no invites/multi-membership).
+- Soft-deleted records are excluded from counts immediately; hard-deletion is not exposed via the API.
+- Payment/billing is out of scope: `price_cents` and billing intervals exist but no invoices.
+- Plan limits are read from JSONB; changing a plan's limits mid-flight affects existing subscribers immediately.
+- The PostgreSQL-only constraints are skipped (not faked) in the SQLite test run; they are exercised live and in `tests/Feature/SchemaTest` on pgsql.
+
+## Trade-offs
+
+- **Shared-schema tenancy** with `company_id` scoping was chosen over database-per-tenant for operational simplicity; isolation is enforced in repositories/policies (see `docs/decisions.md`).
+- **Null limits mean unlimited**, and tenants without an active subscription are not limited — documented deliberately in `docs/decisions.md`.
+- **Cache stampede**: plain `Cache::remember` (no lock) for dashboard/plans; the payloads are cheap to recompute. Rationale in `docs/caching.md`.
