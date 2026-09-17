@@ -34,7 +34,7 @@ final class LogApiRequests
             ]);
         }
 
-        $response->headers->set('X-Response-Time', $durationMs . 'ms');
+        $response->headers->set('X-Response-Time', $durationMs.'ms');
 
         return $response;
     }

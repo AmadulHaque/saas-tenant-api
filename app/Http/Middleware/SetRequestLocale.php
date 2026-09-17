@@ -17,7 +17,7 @@ final class SetRequestLocale
     public function handle(Request $request, Closure $next): Response
     {
         $supportedLocales = array_values(array_filter(array_map(
-            static fn(mixed $locale): string => is_string($locale) ? mb_trim($locale) : '',
+            static fn (mixed $locale): string => is_string($locale) ? mb_trim($locale) : '',
             config()->array('app.supported_locales', [config()->string('app.locale')]),
         )));
 
