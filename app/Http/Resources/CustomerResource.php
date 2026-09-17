@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Enums\UserRole;
+use App\Enums\CustomerStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -10,9 +10,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property int $id
  * @property string $name
  * @property string $email
- * @property UserRole|null $role
+ * @property string|null $phone
+ * @property CustomerStatus $status
  */
-class UserResource extends JsonResource
+class CustomerResource extends JsonResource
 {
     /**
      * Transform the resource into a JSON array.
@@ -25,8 +26,8 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'role' => $this->role?->value,
-            'company' => new CompanyResource($this->whenLoaded('company')),
+            'phone' => $this->phone,
+            'status' => $this->status->value,
             'created_at' => $this->created_at?->toISOString(),
         ];
     }
