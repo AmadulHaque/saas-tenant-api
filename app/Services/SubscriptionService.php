@@ -6,8 +6,10 @@ use App\Enums\SubscriptionStatus;
 use App\Models\Company;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * Subscription lifecycle: assignment, plan changes, cancellation, expiration.
@@ -85,6 +87,47 @@ class SubscriptionService
             ->update([
                 'status' => SubscriptionStatus::Expired->value,
             ]);
+    }
+
+    /**
+     * Mark every past-due active subscription across all tenants as expired.
+     *
+     * Bulk update skips model events, so affected tenants' dashboard
+     * caches are flushed explicitly.
+     */
+    public function expireAllPastDue(): int
+    {
+        $companyIds = Subscription::query()
+            ->pastDue()
+            ->select('company_id')
+            ->distinct()
+            ->pluck('company_id');
+
+        if ($companyIds->isEmpty()) {
+            return 0;
+        }
+
+        $count = Subscription::query()
+            ->pastDue()
+            ->update(['status' => SubscriptionStatus::Expired->value]);
+
+        foreach ($companyIds as $companyId) {
+            $this->flushTenantDashboard($companyId);
+        }
+
+        return $count;
+    }
+
+    /**
+     * Drop the tenant's cached dashboard, ignoring cache-store failures.
+     */
+    private function flushTenantDashboard(int $companyId): void
+    {
+        try {
+            Cache::tags(["tenant:{$companyId}"])->flush();
+        } catch (Throwable) {
+            return;
+        }
     }
 
     /**

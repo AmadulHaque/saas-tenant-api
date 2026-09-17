@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->group(function (): void {
+Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
     require __DIR__.'/v1/auth.php';
 
     Route::middleware(['auth:api', 'throttle:authenticated'])->group(function (): void {
