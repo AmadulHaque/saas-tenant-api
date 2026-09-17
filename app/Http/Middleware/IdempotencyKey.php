@@ -40,7 +40,7 @@ final readonly class IdempotencyKey
 
         $cacheKey = $this->cacheKey($request, $idempotencyKey);
         $requestHash = $this->requestHash($request);
-        $lock = Cache::lock($cacheKey . ':lock', self::LOCK_SECONDS);
+        $lock = Cache::lock($cacheKey.':lock', self::LOCK_SECONDS);
 
         try {
             $lock->block(self::LOCK_WAIT_SECONDS);
@@ -129,26 +129,20 @@ final readonly class IdempotencyKey
 
     private function scope(Request $request): string
     {
-        $authId = $request->user()?->getAuthIdentifier();
-        $workspaceId = $request->user()?->getAttribute('current_workspace_id');
-        $apiKeyId = $request->attributes->get('workspace_api_key_id');
+        $authId = $request->user('api')?->getAuthIdentifier();
 
         $principal = is_int($authId) || is_string($authId)
             ? (string) $authId
             : (string) $request->ip();
 
-        return implode('|', [
-            $principal,
-            is_string($workspaceId) ? $workspaceId : 'no-workspace',
-            is_string($apiKeyId) ? 'apikey:' . $apiKeyId : 'session',
-        ]);
+        return 'principal:'.$principal;
     }
 
     private function cacheKey(Request $request, string $idempotencyKey): string
     {
         $routeName = $request->route()?->getName() ?? $request->path();
 
-        return 'idempotency:' . sha1(sprintf('%s|%s|%s', $this->scope($request), $routeName, $idempotencyKey));
+        return 'idempotency:'.sha1(sprintf('%s|%s|%s', $this->scope($request), $routeName, $idempotencyKey));
     }
 
     private function requestHash(Request $request): string
@@ -164,8 +158,9 @@ final readonly class IdempotencyKey
     {
         $status = $response->getStatusCode();
 
+        // Server errors and throttling must never be replayed.
         return $status >= Response::HTTP_OK
-            && $status < 600
-            && ! in_array($status, [Response::HTTP_TOO_MANY_REQUESTS, Response::HTTP_SERVICE_UNAVAILABLE], true);
+            && $status < Response::HTTP_INTERNAL_SERVER_ERROR
+            && $status !== Response::HTTP_TOO_MANY_REQUESTS;
     }
 }

@@ -22,6 +22,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | API Request Logging
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, every API request is logged with method, URL, user,
+    | status, and duration (LogApiRequests middleware).
+    |
+    */
+
+    'log_api_requests' => env('APP_LOG_API_REQUESTS', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Deprecations Log Channel
     |--------------------------------------------------------------------------
     |
