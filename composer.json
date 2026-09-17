@@ -16,7 +16,8 @@
         "laravel/octane": "^2.19",
         "laravel/passport": "^13.0",
         "laravel/pint": "*",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "predis/predis": "^3.6"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.7",

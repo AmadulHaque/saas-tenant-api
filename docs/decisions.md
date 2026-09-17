@@ -55,6 +55,8 @@ Every subscription read first expires past-due rows (correctness independent of 
 
 **D18 — Usage is an append-only ledger with signed deltas.** `POST /usage` records `{feature, delta, metadata}`; corrections are negative deltas, never updates. Totals are a `SUM` over `(company_id, feature)`. Usage is not part of the dashboard payload, so — per the doc's own rule — no cache invalidation is wired for it (there is nothing cached to invalidate). Enforcing limits against usage totals is deliberately left to plan limits (`max_users`/`max_customers`), which are count-based.
 
+**D19 — Redis client auto-selection (`phpredis` → `predis`).** Telescope's `Telescope::start()` reads the default cache store during provider boot on every artisan invocation. With `REDIS_CLIENT=phpredis` hard-coded, any machine whose PHP lacks the phpredis extension crashed at boot (`Class "Redis" not found`) — common for reviewers running stock PHP. The client now defaults to `phpredis` when the extension is loaded and falls back to `predis` (pure PHP) otherwise; `REDIS_CLIENT` still overrides. Trade-off: predis is slower than the extension, but the application stays runnable everywhere and production keeps the extension.
+
 ## Known debt / upstream breakage
 
 - The scaffold's `composer types` script (phpstan with no paths, no `phpstan.neon`) failed as shipped upstream; it has been fixed to analyse `app tests database/factories database/seeders bootstrap lang`.

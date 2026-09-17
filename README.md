@@ -22,7 +22,7 @@ Companies (tenants) register, manage users and customers, subscribe to plans wit
 
 ## Requirements
 
-- PHP 8.4+ with extensions: `pdo_pgsql`, `redis` (phpredis), `pcntl`, `mbstring`, `openssl`
+- PHP 8.4+ with extensions: `pdo_pgsql`, `redis` (phpredis — optional; `predis` is used automatically when the extension is absent), `pcntl`, `mbstring`, `openssl`
 - Composer 2
 - PostgreSQL 16+
 - Redis 7+

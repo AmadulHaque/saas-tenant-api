@@ -145,7 +145,10 @@ return [
 
     'redis' => [
 
-        'client' => env('REDIS_CLIENT', 'phpredis'),
+        // Prefer the phpredis extension; fall back to predis (pure PHP) so
+        // environments without the extension still boot (Telescope touches
+        // the default cache store during provider boot).
+        'client' => env('REDIS_CLIENT', extension_loaded('redis') ? 'phpredis' : 'predis'),
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
