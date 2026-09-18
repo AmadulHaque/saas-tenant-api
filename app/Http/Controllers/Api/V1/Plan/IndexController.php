@@ -22,15 +22,33 @@ class IndexController extends Controller
      * List active subscription plans.
      *
      * Served from the shared plans:all cache; invalidated by plan changes.
+     * The cache stores raw attribute rows (plain data — cache stores refuse
+     * to unserialize objects, per Laravel 13's serializable_classes default),
+     * and rows are rehydrated into models so casts still apply.
      */
     public function __invoke(): AnonymousResourceCollection
     {
-        $plans = Cache::tags(['plans'])->remember('plans:all', self::CACHE_TTL, fn (): EloquentCollection => SubscriptionPlan::query()
+        $rows = Cache::tags(['plans'])->remember('plans:all', self::CACHE_TTL, fn (): array => SubscriptionPlan::query()
             ->select(['id', 'name', 'slug', 'price_cents', 'billing_interval', 'limits'])
             ->where('is_active', true)
             ->orderBy('price_cents')
-            ->get());
+            ->get()
+            ->map(fn (SubscriptionPlan $plan): array => $plan->getAttributes())
+            ->all());
 
-        return PlanResource::collection($plans);
+        return PlanResource::collection($this->hydrate($rows));
+    }
+
+    /**
+     * Rebuild unsaved, read-only models from cached attribute rows.
+     *
+     * @param  array<int, array<string, mixed>>  $rows
+     */
+    private function hydrate(array $rows): EloquentCollection
+    {
+        return new EloquentCollection(array_map(
+            fn (array $row): SubscriptionPlan => (new SubscriptionPlan)->setRawAttributes($row, true),
+            $rows,
+        ));
     }
 }

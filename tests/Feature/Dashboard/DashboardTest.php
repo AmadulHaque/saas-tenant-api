@@ -143,8 +143,11 @@ test('plans list is cached and refreshed after plan changes', function (): void 
         ->assertOk()
         ->assertJsonCount(1, 'data');
 
-    // Warm cache entry exists for the shared plans key.
-    expect(Cache::tags(['plans'])->get('plans:all'))->not->toBeNull();
+    // Warm cache entry exists for the shared plans key, holding plain data
+    // (Laravel 13 refuses to unserialize objects from cache stores).
+    $cached = Cache::tags(['plans'])->get('plans:all');
+    expect($cached)->toBeArray()
+        ->and($cached[0]['slug'])->toBeString();
 
     // Any plan write flushes the tag, so the next read recomputes.
     SubscriptionPlan::factory()->create(['name' => 'Two']);
