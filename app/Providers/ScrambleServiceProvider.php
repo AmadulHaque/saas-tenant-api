@@ -29,7 +29,7 @@ final class ScrambleServiceProvider extends ServiceProvider
             ->withDocumentTransformers(static function (OpenApi $openApi): void {
                 /** @var SecurityScheme $bearer */
                 $bearer = SecurityScheme::http('bearer');
-                $bearer->setDescription('Either a Passport access token from `/v1/auth/login` or a workspace API key with prefix `dc_` from `/v1/api-keys`. Send as `Authorization: Bearer <token>`.');
+                $bearer->setDescription('Passport personal access token from `/auth/login` or `/auth/register`. Send as `Authorization: Bearer <token>`.');
 
                 $openApi->secure($bearer);
             });
