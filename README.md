@@ -179,6 +179,15 @@ Password for all demo accounts: `password`
 - **Expiration**: lazy check on every subscription read + hourly global sweep.
 - Details: `docs/architecture.md`, `docs/database.md`, `docs/caching.md`, `docs/decisions.md`.
 
+## Security
+
+- **Transport**: set `SECURITY_FORCE_HTTPS=true` in production to 301-redirect plain HTTP and force `https://` in generated URLs; HSTS (`Strict-Transport-Security`) is emitted on secure connections, tunable via `SECURITY_HSTS_*`.
+- **Headers**: every response carries `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`; API responses additionally get `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`.
+- **Host allow-list**: set `TRUSTED_HOSTS=api.example.com,api2.example.com` to reject spoofed `Host` headers (empty = disabled, local default).
+- **Supply chain**: `composer audit --locked` is part of `composer ci`; exact versions are pinned in the committed lock file.
+- **Auth**: stateless Passport personal access tokens (30-day expiry, revoked on logout and user deletion); `auth` routes are rate limited at 5/min per IP+email. MFA is not implemented (documented in `docs/decisions.md` D21).
+- **Data**: passwords are bcrypt-hashed; there is no raw SQL (Eloquent parameterized queries only); production errors are generic (`APP_DEBUG=false`).
+
 ## Known limitations
 
 - One user belongs to exactly one company (no invites/multi-membership).

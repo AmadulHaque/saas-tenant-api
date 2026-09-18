@@ -13,6 +13,7 @@ use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
 
@@ -35,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
         $this->configurePassport();
         $this->configureObservers();
+        $this->configureUrls();
     }
 
     /**
@@ -63,6 +65,16 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('auth', fn (Request $request): Limit => Limit::perMinute(5)
             ->by(sprintf('auth|%s|%s', $request->ip(), (string) $request->input('email'))));
+    }
+
+    /**
+     * Generate absolute URLs (pagination links, etc.) over https when forced.
+     */
+    private function configureUrls(): void
+    {
+        if (Config::boolean('security.force_https', false)) {
+            URL::forceScheme('https');
+        }
     }
 
     private function configureTrustedProxies(): void
