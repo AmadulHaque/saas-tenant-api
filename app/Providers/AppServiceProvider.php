@@ -8,6 +8,8 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Observers\FlushPlansCache;
 use App\Observers\FlushTenantDashboardCache;
+use App\Services\Billing\BillingGateway;
+use App\Services\Billing\FakeGateway;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
@@ -24,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(BillingGateway::class, FakeGateway::class);
     }
 
     /**

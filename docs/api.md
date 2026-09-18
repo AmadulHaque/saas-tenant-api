@@ -103,6 +103,22 @@ Append-only ledger of subscription feature usage. Deltas may be negative (correc
 
 Usage shape: `{ "id", "feature", "delta", "metadata", "recorded_at" }`.
 
+### Billing (owner only)
+
+| Method | Path | Description |
+| --- | --- | --- |
+| POST | `/billing/checkout` | Body: `plan_id` (active plan). Charges the configured gateway and activates the subscription: instant success → `201` (`invoice` + `subscription`), asynchronous confirmation → `202` (`invoice` only; the webhook activates it), decline → `402` (`message` + `invoice`). Repurchasing the currently active plan → `422`; the invoice is rolled back. Free plans (amount 0) settle instantly without a charge. |
+| GET | `/billing/invoices` | Paginated, newest first. Filter: `status` (`pending\|paid\|failed`). |
+| GET | `/billing/invoices/{id}` | Tenant-scoped; foreign id → `403`. |
+
+Invoice shape: `{ "id", "plan": {"id", "name"}, "subscription_id", "amount": {"cents", "currency"}, "status", "gateway", "gateway_reference", "paid_at", "created_at" }`. The plan name is snapshotted at purchase time; later plan renames do not rewrite history.
+
+### Webhooks (signature verified, no bearer auth)
+
+| Method | Path | Description |
+| --- | --- | --- |
+| POST | `/webhooks/billing` | Server-to-server settlement of a pending invoice. Raw body `{ "invoice_id", "status": "paid\|failed", "reference"? }` signed with HMAC-SHA256 (`X-Signature` over the raw body, secret `BILLING_WEBHOOK_SECRET`). Idempotent: invoices that are no longer pending are returned untouched. Bad signature → `401`; unknown invoice → `404`; unconfigured secret → `503`. |
+
 ### Dashboard
 
 | Method | Path | Roles | Description |

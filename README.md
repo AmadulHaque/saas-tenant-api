@@ -188,6 +188,28 @@ Password for all demo accounts: `password`
 - **Auth**: stateless Passport personal access tokens (30-day expiry, revoked on logout and user deletion); `auth` routes are rate limited at 5/min per IP+email. MFA is not implemented (documented in `docs/decisions.md` D21).
 - **Data**: passwords are bcrypt-hashed; there is no raw SQL (Eloquent parameterized queries only); production errors are generic (`APP_DEBUG=false`).
 
+## Billing
+
+Plan purchase is implemented behind a gateway-agnostic contract (`App\Services\Billing\BillingGateway`). The bundled `fake` driver is config-driven, so every path is exercisable without external services:
+
+| Env | Effect |
+| --- | --- |
+| `BILLING_GATEWAY=fake` | Active driver (bind a real one in `AppServiceProvider` for Stripe etc.) |
+| `BILLING_FAKE_BEHAVIOR=paid` | Checkout settles instantly → `201` + active subscription |
+| `BILLING_FAKE_BEHAVIOR=pending` | Checkout returns `202`; settle via the signed webhook (see below) |
+| `BILLING_FAKE_BEHAVIOR=failed` | Checkout returns `402`; invoice records the decline |
+| `BILLING_WEBHOOK_SECRET=…` | Enables `POST /api/v1/webhooks/billing` (HMAC-SHA256 of the raw body in `X-Signature`); unset → webhook answers `503` |
+
+```bash
+# Simulate an async gateway confirmation for invoice 1:
+BODY='{"invoice_id":1,"status":"paid","reference":"gw_confirm_1"}'
+SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$BILLING_WEBHOOK_SECRET" -hex | sed 's/^.* //')
+curl -X POST http://localhost:8000/api/v1/webhooks/billing \
+  -H "Content-Type: application/json" -H "X-Signature: $SIG" -d "$BODY"
+```
+
+Endpoints (owner only): `POST /billing/checkout`, `GET /billing/invoices`, `GET /billing/invoices/{id}` — see `docs/api.md`. Invoices snapshot the plan name/amount at purchase; activation always flows through `SubscriptionService`, so plan-change history, the one-active-subscription rule, and cache invalidation behave identically to direct subscription changes.
+
 ## Known limitations
 
 - One user belongs to exactly one company (no invites/multi-membership).
@@ -195,6 +217,7 @@ Password for all demo accounts: `password`
 - Payment/billing is out of scope: `price_cents` and billing intervals exist but no invoices.
 - Plan limits are read from JSONB; changing a plan's limits mid-flight affects existing subscribers immediately.
 - Usage is recorded but not yet surfaced on the dashboard or enforced against plan limits.
+- Billing has no recurring renewals/dunning or stored payment methods: each checkout is a one-off charge, and invoices are audit records only (see `docs/decisions.md` D22).
 - The PostgreSQL-only constraints are skipped (not faked) in the SQLite test run; they are exercised live and in `tests/Feature/SchemaTest` on pgsql.
 
 ## Trade-offs

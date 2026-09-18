@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
     require __DIR__.'/v1/auth.php';
 
+    require __DIR__.'/v1/webhooks.php';
+
     Route::middleware(['auth:api', 'throttle:authenticated'])->group(function (): void {
         require __DIR__.'/v1/me.php';
         require __DIR__.'/v1/company.php';
@@ -16,5 +18,6 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
         require __DIR__.'/v1/plans.php';
         require __DIR__.'/v1/dashboard.php';
         require __DIR__.'/v1/usage.php';
+        require __DIR__.'/v1/billing.php';
     });
 });
