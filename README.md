@@ -17,7 +17,7 @@ Companies (tenants) register, manage users and customers, subscribe to plans wit
 - **Redis caching** — per-tenant dashboard cache and shared plan cache with observer-driven invalidation and a Redis-unavailable fallback (see `docs/caching.md`).
 - **Background jobs** — scheduled `subscriptions:expire` command (hourly, `withoutOverlapping`, `onOneServer`). No artificial queued jobs — see `docs/decisions.md`.
 - **Rate limiting** — 5/min on auth endpoints (IP + email), 60/min global API, 60/min on authenticated routes.
-- **API documentation** — auto-generated OpenAPI via [Scramble](https://scramble.dedoc.com/) at `/docs/api`.
+- **API documentation** — auto-generated OpenAPI via [Scramble](https://scramble.dedoc.com/) at `/docs/api`. A ready-to-import Postman collection lives at `docs/postman_collection.json` (set `base_url` and `token` variables).
 - **Tooling** — Pest tests, PHPStan (level max), Laravel Pint, Horizon, Telescope.
 
 ## Requirements
