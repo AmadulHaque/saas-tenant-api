@@ -9,9 +9,9 @@ use Throwable;
 /**
  * Flushes the tenant dashboard cache whenever tenant data changes.
  *
- * Observes User, Customer, and Subscription; each carries company_id.
- * Flushing the tenant:{companyId} tag drops that tenant's cached
- * dashboard without touching other tenants.
+ * Observes User, Customer, Subscription, and UsageRecord; each carries
+ * company_id. Flushing the tenant:{companyId} tag drops that tenant's
+ * cached dashboard without touching other tenants.
  */
 class FlushTenantDashboardCache
 {

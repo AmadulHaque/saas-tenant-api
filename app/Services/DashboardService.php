@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\UsageRecord;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
@@ -15,7 +17,8 @@ use Throwable;
  * - Key: tenant:{companyId}:dashboard, tags: dashboard + tenant:{companyId}.
  * - TTL: 300 seconds.
  * - Scope: tenant-isolated via the tenant:{companyId} tag.
- * - Invalidation: FlushDashboardCacheObserver on user/customer/subscription writes.
+ * - Invalidation: FlushTenantDashboardCache observer on user, customer,
+ *   subscription, and usage-record writes.
  * - Fallback: compute fresh when the cache store is unavailable.
  */
 class DashboardService
@@ -56,6 +59,7 @@ class DashboardService
         return [
             'total_users' => User::query()->where('company_id', $company->id)->count(),
             'total_customers' => Customer::query()->where('company_id', $company->id)->count(),
+            'usage' => $this->usageSummary($company),
             'subscription' => $subscription === null ? null : [
                 'status' => $subscription->status->value,
                 'plan' => [
@@ -93,6 +97,27 @@ class DashboardService
                 ])
                 ->all(),
             'generated_at' => now()->toISOString(),
+        ];
+    }
+
+    /**
+     * Signed usage totals grouped by feature (append-only ledger sums).
+     *
+     * @return array{total_events: int, by_feature: array<string, int>}
+     */
+    private function usageSummary(Company $company): array
+    {
+        $sums = UsageRecord::query()
+            ->select(['feature', DB::raw('SUM(delta) as total_delta')])
+            ->where('company_id', $company->id)
+            ->groupBy('feature')
+            ->orderBy('feature')
+            ->get()
+            ->mapWithKeys(fn ($row): array => [$row->feature => (int) $row->total_delta]);
+
+        return [
+            'total_events' => (int) UsageRecord::query()->where('company_id', $company->id)->count(),
+            'by_feature' => $sums->all(),
         ];
     }
 }

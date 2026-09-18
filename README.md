@@ -216,7 +216,7 @@ Endpoints (owner only): `POST /billing/checkout`, `GET /billing/invoices`, `GET 
 - Soft-deleted records are excluded from counts immediately; hard-deletion is not exposed via the API.
 - Payment/billing is out of scope: `price_cents` and billing intervals exist but no invoices.
 - Plan limits are read from JSONB; changing a plan's limits mid-flight affects existing subscribers immediately.
-- Usage is recorded but not yet surfaced on the dashboard or enforced against plan limits.
+- Usage is recorded and surfaced as signed per-feature totals on the dashboard, but not enforced against plan limits (limits are count-based; see `docs/decisions.md` D23).
 - Billing has no recurring renewals/dunning or stored payment methods: each checkout is a one-off charge, and invoices are audit records only (see `docs/decisions.md` D22).
 - The PostgreSQL-only constraints are skipped (not faked) in the SQLite test run; they are exercised live and in `tests/Feature/SchemaTest` on pgsql.
 

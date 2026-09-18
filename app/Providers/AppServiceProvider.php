@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Customer;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use App\Models\UsageRecord;
 use App\Models\User;
 use App\Observers\FlushPlansCache;
 use App\Observers\FlushTenantDashboardCache;
@@ -49,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
         User::observe(FlushTenantDashboardCache::class);
         Customer::observe(FlushTenantDashboardCache::class);
         Subscription::observe(FlushTenantDashboardCache::class);
+        UsageRecord::observe(FlushTenantDashboardCache::class);
         SubscriptionPlan::observe(FlushPlansCache::class);
     }
 

@@ -20,6 +20,7 @@ Two resources are cached. Nothing else is cached deliberately — tenant CRUD re
 - `User` saved / deleted / force-deleted → flush `tenant:{companyId}` (`FlushTenantDashboardCache`)
 - `Customer` saved / deleted / force-deleted → same
 - `Subscription` saved → same (covers subscribe / change plan / cancel via `SubscriptionService`, and direct writes)
+- `UsageRecord` created → same (usage totals live on the dashboard; the append-only ledger never bulk-updates)
 - `SubscriptionService::expireAllPastDue()` bulk-updates rows (bypassing Eloquent events), so it flushes affected tenants **explicitly** after the update
 - TTL as the safety net
 

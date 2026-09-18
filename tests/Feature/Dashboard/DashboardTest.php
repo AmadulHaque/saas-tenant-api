@@ -5,6 +5,7 @@ use App\Models\Customer;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Services\UsageService;
 use Illuminate\Support\Facades\Cache;
 
 function dashTenant(): array
@@ -51,7 +52,41 @@ test('dashboard without a subscription reports null', function (): void {
     $this->actingAs($owner, 'api')
         ->getJson('/api/v1/dashboard')
         ->assertOk()
-        ->assertJsonPath('dashboard.subscription', null);
+        ->assertJsonPath('dashboard.subscription', null)
+        ->assertJsonPath('dashboard.usage.total_events', 0)
+        ->assertJsonPath('dashboard.usage.by_feature', []);
+});
+
+test('dashboard surfaces signed usage totals per feature', function (): void {
+    ['company' => $company, 'owner' => $owner] = dashTenant();
+    $usage = app(UsageService::class);
+
+    $usage->record($company, 'api_calls', 40);
+    $usage->record($company, 'api_calls', 7);
+    $usage->record($company, 'exports', -2);
+
+    $this->actingAs($owner, 'api')
+        ->getJson('/api/v1/dashboard')
+        ->assertOk()
+        ->assertJsonPath('dashboard.usage.total_events', 3)
+        ->assertJsonPath('dashboard.usage.by_feature.api_calls', 47)
+        ->assertJsonPath('dashboard.usage.by_feature.exports', -2);
+});
+
+test('recording usage through the api invalidates the dashboard cache', function (): void {
+    ['company' => $company, 'owner' => $owner] = dashTenant();
+
+    $this->actingAs($owner, 'api')->getJson('/api/v1/dashboard')->assertOk();
+
+    $this->actingAs($owner, 'api')
+        ->postJson('/api/v1/usage', ['feature' => 'api_calls', 'delta' => 5])
+        ->assertCreated();
+
+    $this->actingAs($owner, 'api')
+        ->getJson('/api/v1/dashboard')
+        ->assertOk()
+        ->assertJsonPath('dashboard.usage.total_events', 1)
+        ->assertJsonPath('dashboard.usage.by_feature.api_calls', 5);
 });
 
 test('cache is hit: direct database writes stay invisible until TTL or invalidation', function (): void {

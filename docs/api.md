@@ -135,6 +135,7 @@ Shape:
     "subscription": { "status": "active", "plan": {"name": "Pro", "billing_interval": "monthly"}, "ends_at": "…" },
     "recent_users":   [ { "id", "name", "email", "role", "created_at" } ],
     "recent_customers": [ { "id", "name", "email", "status", "created_at" } ],
+    "usage": { "total_events": 3, "by_feature": { "api_calls": 47, "exports": -2 } },
     "generated_at": "…"
   }
 }
